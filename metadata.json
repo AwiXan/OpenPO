@@ -1,0 +1,6 @@
+{
+  "name": "OpenPO",
+  "description": "OpenPO 1.0 - Professional desktop-grade gettext translation editor and compiler with live disk sync, modular domain schemes, translation memory, plural engines, and instant .MO generation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
