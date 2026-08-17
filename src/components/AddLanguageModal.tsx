@@ -10,6 +10,7 @@ interface AddLanguageModalProps {
 }
 
 const LANGUAGE_PRESETS = [
+  { code: 'en', name: 'English' },
   { code: 'es', name: 'Spanish (Español)' },
   { code: 'fr', name: 'French (Français)' },
   { code: 'de', name: 'German (Deutsch)' },

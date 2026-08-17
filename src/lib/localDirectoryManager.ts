@@ -3,6 +3,7 @@ import { parsePoContent, serializePoFile } from './poParser';
 import { compileMoBinary } from './moCompiler';
 import { COMMON_PLURAL_RULES } from './pluralEngine';
 import { initGitRepository } from './gitEngine';
+import { writeTextFile, writeFile } from '@tauri-apps/plugin-fs';
 
 export function isFileSystemAccessSupported(): boolean {
   return typeof window !== 'undefined' && 'showDirectoryPicker' in window;
@@ -272,38 +273,39 @@ export async function scanLocalDirectory(dirHandle: any): Promise<LoadedDirector
  * Writes text content to a file in the directory
  */
 export async function writeTextFileToDirectory(
-  dirHandle: any,
-  filename: string,
+  dirTarget: any, 
+  filename: string, 
   content: string
-): Promise<any> {
-  if (!dirHandle || !dirHandle.getFileHandle) {
-    throw new Error('Directory handle is not accessible or valid');
+) {
+  if (typeof dirTarget === 'string') {
+    const fullPath = `${dirTarget}/${filename}`;
+    await writeTextFile(fullPath, content);
+    return;
   }
 
-  const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+  const fileHandle = await dirTarget.getFileHandle(filename, { create: true });
   const writable = await fileHandle.createWritable();
   await writable.write(content);
   await writable.close();
-  return fileHandle;
 }
 
-/**
- * Writes binary Uint8Array content to a file in the directory (e.g. .mo file)
- */
 export async function writeBinaryFileToDirectory(
-  dirHandle: any,
-  filename: string,
+  dirTarget: any, 
+  filename: string, 
   data: Uint8Array
-): Promise<any> {
-  if (!dirHandle || !dirHandle.getFileHandle) {
-    throw new Error('Directory handle is not accessible or valid');
+) {
+
+  if (typeof dirTarget === 'string') {
+    const fullPath = `${dirTarget}/${filename}`;
+    await writeFile(fullPath, data);
+    return;
   }
 
-  const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+
+  const fileHandle = await dirTarget.getFileHandle(filename, { create: true });
   const writable = await fileHandle.createWritable();
   await writable.write(data);
   await writable.close();
-  return fileHandle;
 }
 
 /**

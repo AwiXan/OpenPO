@@ -186,7 +186,10 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
 
         {/* Language Input Columns */}
         {poFiles.map((po) => {
-          const poEntry = po.entries.find((e) => e.id === potEntry.id);
+          const poEntry = po.entries.find(
+            (e) => e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || '')
+          ) || po.entries.find((e) => e.id === potEntry.id);
+          
           const currentMsgstr = poEntry?.msgstr || [''];
           const isFuzzy = poEntry?.flags.includes('fuzzy');
 

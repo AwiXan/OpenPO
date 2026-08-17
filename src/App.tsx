@@ -64,6 +64,8 @@ import { SettingsModal } from './components/SettingsModal';
 import { GitModal } from './components/GitModal';
 import { AboutModal } from './components/AboutModal';
 
+import { writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
+
 const DEFAULT_SETTINGS: AppSettings = {
   fuzzyMatchingThreshold: 80,
   autoMarkFuzzyUnder100: true,
@@ -75,6 +77,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoNewlineOnEnter: true,
   showNewlinesVisible: true,
 };
+
 
 export default function App() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
@@ -110,7 +113,7 @@ export default function App() {
           setZoomLevel((prev) => Math.max(prev - 10, 60)); // Min 50%
         } else if (e.key === '0') {
           e.preventDefault();
-          setZoomLevel(100); // Сброс на 100%
+          setZoomLevel(100);
         }
       }
     };
@@ -190,13 +193,14 @@ export default function App() {
   // Mouse move / up handler for dragging dividers
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      const scale = zoomLevel / 100;
       if (isDraggingSidebar) {
         // Clamp sidebar between 180px and 520px
-        const newWidth = Math.max(180, Math.min(520, e.clientX));
+        const newWidth = Math.max(180, Math.min(520, e.clientX / scale));
         setSidebarWidth(newWidth);
       } else if (isDraggingEditor) {
         // Clamp editor between 320px and 860px from right edge
-        const newWidth = Math.max(320, Math.min(860, window.innerWidth - e.clientX));
+        const newWidth = Math.max(320, Math.min(860, (window.innerWidth - e.clientX) / scale));
         setEditorWidth(newWidth);
       }
     };
@@ -426,8 +430,8 @@ export default function App() {
       const poFilesScanned = files.filter((f) => f.name.endsWith('.po'));
 
       const domainName = potFileScanned ? potFileScanned.name.replace(/\.pot$/, '') : 'messages';
-      
-      const parsedPot = potFileScanned 
+
+      const parsedPot = potFileScanned
         ? parsePoContent(potFileScanned.content)
         : { header: { mimeVersion: '1.0', contentType: 'text/plain; charset=UTF-8', contentTransferEncoding: '8bit' }, entries: [] };
 
@@ -473,10 +477,9 @@ export default function App() {
         totalFiles: files.length,
       });
 
-      // Обновляем список недавних папок (поднимаем текущую наверх)
       setRecentFolders((prev) => {
         const filtered = prev.filter((p) => p !== dirPath);
-        return [dirPath, ...filtered].slice(0, 10); // Храним только 10 последних
+        return [dirPath, ...filtered].slice(0, 10);
       });
 
       showToast(`Loaded workspace from: ${dirPath}`, 'success');
@@ -562,11 +565,53 @@ export default function App() {
       return;
     }
 
-    // If loaded in iframe without direct filesystem handle, export updated bundle as ZIP
+    if (localDirState.dirName && !localDirState.dirHandle) {
+      try {
+        const domain = currentWorkspace.domainName || 'messages';
+        let savedPo = 0;
+        let savedMo = 0;
+        const cleanDir = localDirState.dirName.replace(/\\/g, '/');
+
+        for (const po of currentWorkspace.poFiles) {
+          const poFilename = po.filename || formatPoFilename(domain, po.language, settings.poNamingScheme);
+          const poContent = serializePoFile(po.header, po.entries, false);
+          const fullPoPath = `${cleanDir}/${poFilename}`;
+
+          await writeNativeTextFile(fullPoPath, poContent);
+          savedPo++;
+
+          if (settings.autoCompileMoOnSave ?? true) {
+            const moFilename = poFilename.endsWith('.po')
+              ? poFilename.slice(0, -3) + '.mo'
+              : formatMoFilename(domain, po.language, settings.poNamingScheme);
+
+            const moBinary = compileMoBinary(po.header, po.entries);
+            const fullMoPath = `${cleanDir}/${moFilename}`;
+            await writeNativeBinaryFile(fullMoPath, moBinary);
+            savedMo++;
+          }
+        }
+
+        setWorkspaces((prev) =>
+          prev.map((w) => (w.id === activeWorkspaceId ? { ...w, isModified: false } : w))
+        );
+
+        const message = t('toast.synced')
+          .replace('${savedPo}', savedPo.toString())
+          .replace('${savedMo}', savedMo.toString());
+
+        showToast(message, 'success');
+      } catch (err: any) {
+        console.error('Failed to sync native folder:', err);
+        showToast(`Native disk sync failed: ${err.message}`, 'warning');
+      }
+      return;
+    }
+
     if (!localDirState.dirHandle) {
       handleExportWorkspaceZip();
       showToast(
-        `Exported updated PO and compiled MO bundle for "${localDirState.dirName}". (Open in new tab for direct two-way live disk write)`,
+        `Exported updated PO and compiled MO bundle for "${localDirState.dirName}".`,
         'success'
       );
       return;
@@ -578,6 +623,10 @@ export default function App() {
         currentWorkspace,
         settings.autoCompileMoOnSave ?? true,
         settings.poNamingScheme || 'domain_lang'
+      );
+
+      setWorkspaces((prev) =>
+        prev.map((w) => (w.id === activeWorkspaceId ? { ...w, isModified: false } : w))
       );
 
       showToast(
@@ -593,21 +642,60 @@ export default function App() {
   // Helper to persist to disk if local directory is active
   const triggerDiskSyncForPo = useCallback(
     async (poRecord: PoFileRecord) => {
-      if (!localDirState.isConnected || !localDirState.dirHandle) return;
+      if (localDirState.isConnected && localDirState.dirName) {
+        try {
+          const domain = currentWorkspace.domainName || 'messages';
+          let savedPo = 0;
+          let savedMo = 0;
+          const poFilename = poRecord.filename || formatPoFilename(domain, poRecord.language, settings.poNamingScheme);
+          const poContent = serializePoFile(poRecord.header, poRecord.entries, false);
+
+          const cleanDir = localDirState.dirName.replace(/\\/g, '/');
+          const fullPoPath = `${cleanDir}/${poFilename}`;
+          await writeNativeTextFile(fullPoPath, poContent);
+          savedPo++;
+
+          let moFilename = '';
+          if (settings.autoCompileMoOnSave ?? true) {
+            moFilename = poFilename.endsWith('.po')
+              ? poFilename.slice(0, -3) + '.mo'
+              : formatMoFilename(domain, poRecord.language, settings.poNamingScheme);
+
+
+            const moBinary = compileMoBinary(poRecord.header, poRecord.entries);
+            const fullMoPath = `${cleanDir}/${moFilename}`;
+            await writeNativeBinaryFile(fullMoPath, moBinary);
+            savedMo++;
+          }
+
+          console.log(`[Native Disk Sync] Saved ${poFilename} and compiled ${moFilename}`);
+          setWorkspaces((prev) =>
+            prev.map((w) => (w.id === activeWorkspaceId ? { ...w, isModified: false } : w))
+          );
+        } catch (err) {
+          console.error('🚨 NATIVE DISK SYNC ERROR:', err);
+        }
+        return;
+      }
+
+      const target = localDirState.dirHandle;
+      if (!localDirState.isConnected || !target) return;
+
       try {
         const domain = currentWorkspace.domainName || 'messages';
         const res = await savePoAndMoToDirectory(
-          localDirState.dirHandle,
+          target,
           poRecord,
           settings.autoCompileMoOnSave ?? true,
           domain,
           settings.poNamingScheme || 'domain_lang'
         );
+
         if (res.moFilename) {
-          console.log(`[Disk Sync] Saved ${res.poFilename} and compiled ${res.moFilename}`);
+          console.log(`[Disk Sync] Saved ${res.moFilename} and compiled ${res.moFilename}`);
         }
       } catch (err) {
-        console.warn('Failed background auto-save to disk:', err);
+        console.error('🚨 FULL DISK SYNC ERROR:', err);
       }
     },
     [localDirState, currentWorkspace.domainName, settings.autoCompileMoOnSave, settings.poNamingScheme]
@@ -760,9 +848,8 @@ export default function App() {
           const updatedPoFiles = w.poFiles.map((po) => {
             if (po.id !== w.activeFileId) return po;
             const updatedEntries = po.entries.map((e) => (e.id === updated.id ? updated : e));
-            const updatedPo = { ...po, entries: updatedEntries, isModified: true };
-            triggerDiskSyncForPo(updatedPo);
-            return updatedPo;
+
+            return { ...po, entries: updatedEntries, isModified: true };
           });
 
           return { ...w, poFiles: updatedPoFiles, isModified: true };
@@ -805,7 +892,6 @@ export default function App() {
               entries: po.entries.map((e) => (e.id === updatedPotEntry.id ? syncedEntry : e)),
               isModified: true,
             };
-            triggerDiskSyncForPo(updatedPo);
             return updatedPo;
           });
 
@@ -853,7 +939,6 @@ export default function App() {
               return e;
             });
             const updatedPo = { ...po, entries: updatedEntries, isModified: true };
-            triggerDiskSyncForPo(updatedPo);
             return updatedPo;
           });
 
@@ -899,7 +984,6 @@ export default function App() {
               entries: [...po.entries, poEntry],
               isModified: true,
             };
-            triggerDiskSyncForPo(updatedPo);
             return updatedPo;
           });
 
@@ -933,7 +1017,6 @@ export default function App() {
               entries: po.entries.filter((en) => en.id !== entryId),
               isModified: true,
             };
-            triggerDiskSyncForPo(updatedPo);
             return updatedPo;
           });
 
@@ -972,7 +1055,7 @@ export default function App() {
             mimeVersion: '1.0',
             contentType: 'text/plain; charset=UTF-8',
             contentTransferEncoding: '8bit',
-            xGenerator: 'PoCraft Gettext Studio',
+            xGenerator: 'OpenPO',
             rawHeaders: {},
           };
 
@@ -994,7 +1077,6 @@ export default function App() {
             isModified: true,
           };
 
-          triggerDiskSyncForPo(newPoRecord);
 
           return {
             ...w,
@@ -1046,7 +1128,7 @@ export default function App() {
               return { ...entry, flags: nextFlags };
             });
             const updatedPo = { ...po, entries: updatedEntries, isModified: true };
-            triggerDiskSyncForPo(updatedPo);
+
             return updatedPo;
           });
           return { ...w, poFiles, isModified: true };
@@ -1064,13 +1146,32 @@ export default function App() {
       setWorkspaces((prev) =>
         prev.map((w) => {
           if (w.id !== activeWorkspaceId) return w;
+
+          const potEntry = w.potFile.entries.find((e) => e.id === entryId);
+
           const poFiles = w.poFiles.map((po) => {
             if (po.id !== poFileId) return po;
-            const updatedEntries = po.entries.map((e) =>
-              e.id === entryId ? { ...e, msgstr: newMsgstr } : e
+
+            const existingIndex = po.entries.findIndex(
+              (e) => (potEntry && e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || '')) || e.id === entryId
             );
+
+            let updatedEntries = [...po.entries];
+            if (existingIndex >= 0) {
+              updatedEntries[existingIndex] = {
+                ...updatedEntries[existingIndex],
+                msgstr: newMsgstr,
+              };
+            } else if (potEntry) {
+              updatedEntries.push({
+                ...potEntry,
+                id: `entry_${Date.now()}_${Math.random()}`,
+                msgstr: newMsgstr,
+                flags: [],
+              });
+            }
+
             const updatedPo = { ...po, entries: updatedEntries, isModified: true };
-            triggerDiskSyncForPo(updatedPo);
             return updatedPo;
           });
           return { ...w, poFiles, isModified: true };
@@ -1126,7 +1227,10 @@ export default function App() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.ctrlKey || e.metaKey;
 
-      if (isCmdOrCtrl && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      if (isCmdOrCtrl && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        handleSyncLocalFolder();
+      } else if (isCmdOrCtrl && e.key.toLowerCase() === 'z' && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
       } else if (
@@ -1149,7 +1253,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [filteredEntries, activeEntryId, handleUndo, handleRedo]);
+  }, [filteredEntries, activeEntryId, handleUndo, handleRedo, handleSyncLocalFolder]);
 
   // Download individual PO file
   const handleDownloadPo = (po: PoFileRecord, e: React.MouseEvent) => {
@@ -1377,7 +1481,6 @@ export default function App() {
             return entry;
           });
           const updatedPo = { ...po, entries: updatedEntries, isModified: true };
-          triggerDiskSyncForPo(updatedPo);
           return updatedPo;
         });
         return { ...w, poFiles, isModified: true };
@@ -1399,7 +1502,6 @@ export default function App() {
             flags: e.flags.filter((f) => f !== 'fuzzy'),
           }));
           const updatedPo = { ...po, entries: updatedEntries, isModified: true };
-          triggerDiskSyncForPo(updatedPo);
           return updatedPo;
         });
         return { ...w, poFiles, isModified: true };
@@ -1423,7 +1525,7 @@ export default function App() {
             return e;
           });
           const updatedPo = { ...po, entries: updatedEntries, isModified: true };
-          triggerDiskSyncForPo(updatedPo);
+
           return updatedPo;
         });
         return { ...w, poFiles, isModified: true };
@@ -1503,7 +1605,7 @@ export default function App() {
   };
 
   return (
-    <div 
+    <div
       className="flex flex-col bg-[#090B0E] text-[#E2E8F0] font-sans antialiased overflow-hidden origin-top-left"
       style={{
         transform: `scale(${zoomLevel / 100})`,
@@ -1514,13 +1616,12 @@ export default function App() {
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div
-          className={`fixed top-12 right-6 z-50 px-4 py-2.5 rounded-lg shadow-xl text-xs font-medium border flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 ${
-            toastMessage.type === 'success'
-              ? 'bg-[#10B9811A] border-[#10B981] text-[#4ADE80] backdrop-blur-md'
-              : toastMessage.type === 'warning'
+          className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-lg shadow-xl text-xs font-medium border flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200 ${toastMessage.type === 'success'
+            ? 'bg-[#10B9811A] border-[#10B981] text-[#4ADE80] backdrop-blur-md'
+            : toastMessage.type === 'warning'
               ? 'bg-[#F59E0B1A] border-[#F59E0B] text-[#F59E0B] backdrop-blur-md'
               : 'bg-[#3B82F61A] border-[#3B82F6] text-[#38BDF8] backdrop-blur-md'
-          }`}
+            }`}
         >
           <span>{toastMessage.text}</span>
         </div>
@@ -1612,9 +1713,8 @@ export default function App() {
           <div
             onMouseDown={() => setIsDraggingSidebar(true)}
             onDoubleClick={() => setSidebarWidth(270)}
-            className={`w-1.5 hover:w-2 bg-[#2D3139] hover:bg-[#3B82F6] cursor-col-resize transition-all z-20 flex items-center justify-center shrink-0 select-none group relative ${
-              isDraggingSidebar ? 'bg-[#3B82F6] !w-2 shadow-[0_0_10px_rgba(59,130,246,0.8)]' : ''
-            }`}
+            className={`w-1.5 hover:w-2 bg-[#2D3139] hover:bg-[#3B82F6] cursor-col-resize transition-all z-20 flex items-center justify-center shrink-0 select-none group relative ${isDraggingSidebar ? 'bg-[#3B82F6] !w-2 shadow-[0_0_10px_rgba(59,130,246,0.8)]' : ''
+              }`}
             title="Drag to resize filters & categories sidebar (double-click to reset)"
           >
             <div className="w-0.5 h-6 bg-[#64748B] group-hover:bg-white rounded-full transition-colors opacity-60 group-hover:opacity-100" />
@@ -1637,9 +1737,8 @@ export default function App() {
           <div
             onMouseDown={() => setIsDraggingEditor(true)}
             onDoubleClick={() => setEditorWidth(540)}
-            className={`w-1.5 hover:w-2 bg-[#2D3139] hover:bg-[#3B82F6] cursor-col-resize transition-all z-20 flex items-center justify-center shrink-0 select-none group relative ${
-              isDraggingEditor ? 'bg-[#3B82F6] !w-2 shadow-[0_0_10px_rgba(59,130,246,0.8)]' : ''
-            }`}
+            className={`w-1.5 hover:w-2 bg-[#2D3139] hover:bg-[#3B82F6] cursor-col-resize transition-all z-20 flex items-center justify-center shrink-0 select-none group relative ${isDraggingEditor ? 'bg-[#3B82F6] !w-2 shadow-[0_0_10px_rgba(59,130,246,0.8)]' : ''
+              }`}
             title="Drag to resize translation editor (double-click to reset)"
           >
             <div className="w-0.5 h-6 bg-[#64748B] group-hover:bg-white rounded-full transition-colors opacity-60 group-hover:opacity-100" />
@@ -1675,30 +1774,46 @@ export default function App() {
       )}
 
       {/* 5. Sleek Technical Status Footer */}
-      <footer className="h-6 bg-[#16191E] border-t border-[#2D3139] flex items-center px-4 justify-between text-[10px] text-[#64748B] select-none font-mono shrink-0">
-        <div className="flex items-center gap-4">
-          <span>⌨ UTF-8</span>
-          <span>☰ {isPotActive ? currentWorkspace.potFile.filename : currentPoFile?.filename || 'workspace'}</span>
-          <span>{currentEntry ? `Active Key: ${currentEntry.msgid.slice(0, 20)}...` : 'Ready'}</span>
-          {localDirState.isConnected && (
-            <span className="text-[#4ADE80] font-semibold">
-              📁 Live Disk: {localDirState.dirName} (Auto .MO: {settings.autoCompileMoOnSave ? 'ON' : 'OFF'})
-            </span>
+      <footer className="h-6 bg-[#0F1115] border-t border-[#21262D] flex items-center px-3 justify-between text-[11px] text-[#8B949E] select-none font-mono shrink-0 overflow-hidden whitespace-nowrap">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <span className="text-[#8B949E]">UTF-8</span>
+          <span className="text-[#21262D]">|</span>
+          <span className="text-[#C9D1D9] truncate max-w-[160px]" title={isPotActive ? currentWorkspace.potFile.filename : currentPoFile?.filename}>
+            {isPotActive ? currentWorkspace.potFile.filename : currentPoFile?.filename || 'workspace'}
+          </span>
+
+          {currentEntry && (
+            <>
+              <span className="text-[#21262D]">|</span>
+              <span className="truncate max-w-[180px]" title={currentEntry.msgid}>
+                Key: {currentEntry.msgid}
+              </span>
+            </>
           )}
-          <span className="text-[#38BDF8]">
-            Git: {currentWorkspace.git?.branch || 'main'} ({currentWorkspace.git?.commits.length || 0} commits)
+
+          {localDirState.isConnected && (
+            <>
+              <span className="text-[#21262D]">|</span>
+              <span className="text-[#7EE787] truncate max-w-[200px]" title={localDirState.dirName}>
+                Disk: {localDirState.dirName} {settings.autoCompileMoOnSave ? '(auto .mo)' : ''}
+              </span>
+            </>
+          )}
+
+          <span className="text-[#21262D]">|</span>
+          <span className="text-[#79C0FF]">
+            git:{currentWorkspace.git?.branch || 'main'}
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span>Scheme: {settings.poNamingScheme || 'domain_lang'}</span>
-          <span>•</span>
-          <span>TM Threshold: {settings.fuzzyMatchingThreshold}%</span>
-          <span>•</span>
-          <span>
-            {stats.total} strings | {stats.untranslated} untranslated | {stats.fuzzy} fuzzy
+        <div className="flex items-center gap-3 shrink-0 text-[#8B949E]">
+          <span>scheme: {settings.poNamingScheme || 'domain_lang'}</span>
+          <span>|</span>
+          <span>tm: {settings.fuzzyMatchingThreshold}%</span>
+          <span>|</span>
+          <span className="text-[#C9D1D9]">
+            {stats.total} total <span className="text-[#8B949E]">•</span> {stats.untranslated} untranslated <span className="text-[#8B949E]">•</span> {stats.fuzzy} fuzzy
           </span>
-          <span className="text-[#3B82F6] font-bold">POCRAFT v2.5</span>
         </div>
       </footer>
 
@@ -1737,10 +1852,10 @@ export default function App() {
               prev.map((w) =>
                 w.id === activeWorkspaceId
                   ? {
-                      ...w,
-                      potFile: { ...w.potFile, header: newHeader, entries: newEntries, isModified: true },
-                      isModified: true,
-                    }
+                    ...w,
+                    potFile: { ...w.potFile, header: newHeader, entries: newEntries, isModified: true },
+                    isModified: true,
+                  }
                   : w
               )
             );

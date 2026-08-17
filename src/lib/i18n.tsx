@@ -23,7 +23,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   en: {
     // Menu Bar
     'menu.file': 'File',
-    'menu.recents': 'Récents',
+    'menu.recents': 'Recent',
     'menu.edit': 'Edit',
     'menu.view': 'View',
     'menu.tools': 'Tools',
@@ -327,6 +327,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.flags': 'Flags',
     'git.none': 'none',
     'git.files': 'files',
+
+    'toast.synced': 'Synced ${savedPo} .po files and compiled ${savedMo} .mo binaries directly to disk!'
   },
   ru: {
     // Menu Bar
@@ -635,6 +637,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.flags': 'Флаги',
     'git.none': 'нет',
     'git.files': 'файлов',
+
+    'toast.synced': 'Синхронизировано .po файлов: ${savedPo}, скомпилировано .mo бинарников: ${savedMo} прямо на диск!',
   },
   es: {
     // Menu Bar
@@ -941,6 +945,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.flags': 'Banderas',
     'git.none': 'ninguno',
     'git.files': 'archivos',
+
+    'toast.synced': '¡Sincronizados ${savedPo} archivos .po y compilados ${savedMo} binarios .mo directamente en el disco!'
   },
   fr: {
     // Menu Bar
@@ -1247,6 +1253,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.flags': 'Drapeaux',
     'git.none': 'aucun',
     'git.files': 'fichiers',
+
+    'toast.synced': '${savedPo} fichiers .po synchronisés et ${savedMo} binaires .mo compilés directement sur le disque !'
   },
   de: {
     // Menu Bar
@@ -1553,6 +1561,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.flags': 'Flags',
     'git.none': 'keine',
     'git.files': 'Dateien',
+
+    'toast.synced': '${savedPo} .po-Dateien synchronisiert und ${savedMo} .mo-Binärdateien direkt auf die Festplatte kompiliert!',
   },
   zh: {
     // Menu Bar
@@ -1859,6 +1869,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.flags': '标志',
     'git.none': '无',
     'git.files': '个文件',
+
+    'toast.synced': '已同步 ${savedPo} 个 .po 文件，并将 ${savedMo} 个 .mo 二进制文件直接编译到磁盘！'
   },
   ja: {
     // Menu Bar
@@ -2165,6 +2177,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.flags': 'フラグ',
     'git.none': 'なし',
     'git.files': 'ファイル',
+
+    'toast.synced': '${savedPo}個の.poファイルを同期し、${savedMo}個の.moバイナリをディスクに直接コンパイルしました！',
   },
 };
 

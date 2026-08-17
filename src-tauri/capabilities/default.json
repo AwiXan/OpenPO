@@ -10,35 +10,67 @@
     "fs:default",
     {
       "identifier": "fs:allow-read",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "fs:allow-write",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "fs:allow-exists",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "fs:allow-read-dir",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "fs:allow-read-text-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "fs:allow-write-text-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "fs:allow-read-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "fs:allow-write-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "**" },
+        { "path": "?:/**" },
+        { "path": "?:\\**" }
+      ]
     },
     {
       "identifier": "shell:allow-execute",

@@ -18,7 +18,7 @@ import {
   Unlink,
   Check,
   HelpCircle,
-  Clock, // <-- ДОБАВИТЬ СЮДА
+  Clock,
 } from 'lucide-react';
 import { Workspace, LocalDirectoryState } from '../types/gettext';
 import { useTranslation, SUPPORTED_UI_LANGUAGES, UiLanguage } from '../lib/i18n';

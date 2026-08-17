@@ -37,7 +37,9 @@ export const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
             >
               <span className={isActive ? 'text-[#3B82F6] font-bold' : 'text-[#64748B]'}>◇</span>
               
+              {/* Заменили workspace на ws */}
               <span className="truncate max-w-[150px] font-mono text-[11px]">{ws.name}</span>
+              {ws.isModified && <span className="text-[#38BDF8] ml-1">*</span>}
               
               <div className="flex items-center gap-1.5 ml-1">
                 <span className="text-[10px] px-1 py-0.2 rounded bg-[#090B0E] text-[#64748B] font-mono border border-[#2D3139]/60">
@@ -47,7 +49,7 @@ export const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
                 {workspaces.length > 1 && (
                   <button
                     onClick={(e) => onCloseWorkspace(ws.id, e)}
-                    className="p-0.5 rounded hover:bg-[#2D3139] text-[#64748B] hover:text-[#E2E8F0] transition-colors opacity-0 group-hover:opacity-100"
+                    className="p-0.5 rounded hover:bg-[#2D3139] text-[#64748B] hover:text-[#E2E8F0] transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                     title="Close Workspace"
                   >
                     <X className="w-3 h-3" />
