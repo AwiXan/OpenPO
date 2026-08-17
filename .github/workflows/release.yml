@@ -14,11 +14,8 @@ jobs:
       matrix:
         include:
           - platform: macos-latest
-            args: ''
           - platform: ubuntu-22_04
-            args: ''
           - platform: windows-latest
-            args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -46,6 +43,5 @@ jobs:
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         with:
-          args: ${{ matrix.args }}
+          args: ''
