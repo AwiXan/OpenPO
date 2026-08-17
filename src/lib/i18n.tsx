@@ -23,6 +23,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   en: {
     // Menu Bar
     'menu.file': 'File',
+    'menu.recents': 'Récents',
     'menu.edit': 'Edit',
     'menu.view': 'View',
     'menu.tools': 'Tools',
@@ -205,10 +206,10 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
 
     // About Modal
     'about.title': 'About OpenPO 1.0',
-    'about.subtitle': 'Modern Professional GNU gettext (.po / .pot / .mo) Localization Suite',
-    'about.vibecodedTitle': 'Vibecoded with AwiXan',
+    'about.subtitle': 'Modular GNU gettext (.po / .pot / .mo) Localization Suite',
+    'about.vibecodedTitle': 'AI SLOP ALERT!',
     'about.aiCraft': '100% AI Craft',
-    'about.vibecodedNote': 'This app is 100% vibecoded asf (with guidance by AwiXan, but i, like, did nothing). And I kinda feel guilty, but just for the sake of convenience, I think i have to release this app.',
+    'about.vibecodedNote': 'This app is 100% vibecoded asf (with guidance by AwiXan, but i, like, did nothing). Just for the sake of convenience, I think i have to release this app.',
     'about.coreFeatures': 'Core Features',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Full parser, formatter, and instantaneous browser-side binary .mo compiler.',
@@ -330,6 +331,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   ru: {
     // Menu Bar
     'menu.file': 'Файл',
+    'menu.recents': 'Недавние',
     'menu.edit': 'Правка',
     'menu.view': 'Вид',
     'menu.tools': 'Инструменты',
@@ -512,10 +514,10 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
 
     // About Modal
     'about.title': 'О программе OpenPO 1.0',
-    'about.subtitle': 'Профессиональная среда локализации GNU gettext (.po / .pot / .mo)',
-    'about.vibecodedTitle': 'Вайбкодинг с AwiXan',
+    'about.subtitle': 'Модульная среда локализации GNU gettext (.po / .pot / .mo)',
+    'about.vibecodedTitle': 'ОСТОРОЖНО ИИ-СЛОП!',
     'about.aiCraft': '100% ИИ-разработка',
-    'about.vibecodedNote': 'Это приложение на 100% создано в режиме вайбкодинга под руководством AwiXan (хотя я, типа, ничего сам не делал). И мне немного стыдно, но чисто ради удобства я решил выпустить это приложение.',
+    'about.vibecodedNote': 'Это приложение на 100% сгенерировано нейросетями от компании Google, лишь под небольшим руководством AwiXan (я, типа, ничего сам не делал). Я решил выпустить это приложение чисто ради общего удобства.',
     'about.coreFeatures': 'Основные возможности',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Полноценный парсер, форматтер и мгновенный компилятор бинарных .mo прямо в браузере.',
@@ -637,6 +639,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   es: {
     // Menu Bar
     'menu.file': 'Archivo',
+    'menu.recents': 'Recientes',
     'menu.edit': 'Edición',
     'menu.view': 'Ver',
     'menu.tools': 'Herramientas',
@@ -817,10 +820,10 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
 
     // About Modal
     'about.title': 'Acerca de OpenPO 1.0',
-    'about.subtitle': 'Suite moderna de localización GNU gettext (.po / .pot / .mo)',
+    'about.subtitle': 'Gettexte modulaire GNU (.po / .pot/. mo) Suite de localisation',
     'about.vibecodedTitle': 'Vibecodeado con AwiXan',
     'about.aiCraft': '100% Creación IA',
-    'about.vibecodedNote': 'Esta app está 100% vibecodeada bajo la guía de AwiXan (aunque yo, la verdad, no hice nada). Y me siento un poco culpable, pero por pura comodidad decidí lanzarla.',
+    'about.vibecodedNote': 'Esta aplicación es 100% generada por redes neuronales de Google, solo bajo un poco de la guía de AwiXan (yo, como, no hice nada yo mismo). Decidí lanzar esta aplicación puramente por el bien de la conveniencia general.',
     'about.coreFeatures': 'Características principales',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Analizador completo, formateador y compilador binario .mo instantáneo en navegador.',
@@ -942,6 +945,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   fr: {
     // Menu Bar
     'menu.file': 'Fichier',
+    'menu.recents': 'Récents',
     'menu.edit': 'Édition',
     'menu.view': 'Affichage',
     'menu.tools': 'Outils',
@@ -1122,10 +1126,10 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
 
     // About Modal
     'about.title': 'À propos d\'OpenPO 1.0',
-    'about.subtitle': 'Suite moderne de localisation GNU gettext (.po / .pot / .mo)',
+    'about.subtitle': 'Gettexte modulaire GNU (.po / .pot/. mo) Suite de localisation',
     'about.vibecodedTitle': 'Vibecodé avec AwiXan',
     'about.aiCraft': '100% Création IA',
-    'about.vibecodedNote': 'Cette application est 100% vibecodée sous la direction d\'AwiXan (bien que je n\'aie, genre, rien fait). Et je me sens un peu coupable, mais par pure commodité, j\'ai décidé de la publier.',
+    'about.vibecodedNote': 'Cette application est 100% généré par les réseaux de neurones de Google, seulement sous la direction d\'AwiXan (je, comme, je n\'ai rien fait moi-même). J\'ai décidé de publier cette application uniquement pour des raisons de commodité générale.',
     'about.coreFeatures': 'Fonctionnalités clés',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Analyseur complet, formateur et compilateur binaire .mo instantané dans le navigateur.',
@@ -1247,6 +1251,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   de: {
     // Menu Bar
     'menu.file': 'Datei',
+    'menu.recents': 'Jüngst',
     'menu.edit': 'Bearbeiten',
     'menu.view': 'Ansicht',
     'menu.tools': 'Werkzeuge',
@@ -1430,7 +1435,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.subtitle': 'Moderne GNU gettext (.po / .pot / .mo) Lokalisierungssuite',
     'about.vibecodedTitle': 'Gevibecoded mit AwiXan',
     'about.aiCraft': '100% KI-Handwerk',
-    'about.vibecodedNote': 'Diese App ist zu 100% unter der Anleitung von AwiXan gevibecoded (wobei ich quasi nichts gemacht habe). Und ich fühle mich etwas schuldig, aber einfach der Bequemlichkeit halber habe ich sie veröffentlicht.',
+    'about.vibecodedNote': 'Diese Anwendung wird zu 100% von den neuronalen Netzen von Google erzeugt, nur unter ein wenig Anleitung von AwiXan (ich habe selbst nichts getan). Ich habe beschlossen, diese App aus Gründen der allgemeinen Bequemlichkeit zu veröffentlichen.',
     'about.coreFeatures': 'Hauptfunktionen',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Vollständiger Parser, Formatierer und sofortiger browserbasierter binärer .mo-Compiler.',
@@ -1552,6 +1557,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   zh: {
     // Menu Bar
     'menu.file': '文件',
+    'menu.recents': '最近的',
     'menu.edit': '编辑',
     'menu.view': '视图',
     'menu.tools': '工具',
@@ -1735,7 +1741,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.subtitle': '现代专业 GNU gettext (.po / .pot / .mo) 本地化套件',
     'about.vibecodedTitle': '与 AwiXan 共同氛围编码',
     'about.aiCraft': '100% AI 创作',
-    'about.vibecodedNote': '本应用 100% 在 AwiXan 的指导下通过 Vibe Coding 完成（但我自己基本没写代码）。虽然有点小内疚，但纯粹为了方便，我决定发布这款应用。',
+    'about.vibecodedNote': '这个应用程序是100％由google的神经网络生成的，只有AwiXan的一点指导（我喜欢，自己没有做任何事情）。 我决定发布这个应用程序纯粹是为了一般的方便。',
     'about.coreFeatures': '核心功能',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': '完整的解析器、格式化器和浏览器端即时二进制 .mo 编译器。',
@@ -1857,6 +1863,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
   ja: {
     // Menu Bar
     'menu.file': 'ファイル',
+    'menu.recents': '最近の',
     'menu.edit': '編集',
     'menu.view': '表示',
     'menu.tools': 'ツール',
@@ -2040,7 +2047,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.subtitle': '最新のプロフェッショナル GNU gettext (.po / .pot / .mo) ローカリゼーション環境',
     'about.vibecodedTitle': 'AwiXan とのバイブコーディング',
     'about.aiCraft': '100% AI開発',
-    'about.vibecodedNote': 'このアプリは AwiXan の指導のもと100% バイブコーディングで作成されました（私自身はほぼ何もしていません）。少し罪悪感はありますが、純粋な利便性のためにリリースすることにしました。',
+    'about.vibecodedNote': 'このアプリケーションは、Googleのニューラルネットワークによって100％生成され、AwiXanからの少しのガイダンスしかありません（私は自分で何もしませんでした）。 私は純粋に一般的な利便性のために、このアプリをリリースすることにしました。',
     'about.coreFeatures': '主な機能',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': '完全なパーサー、フォーマッター、ブラウザ内即時バイナリ .mo コンパイラ。',

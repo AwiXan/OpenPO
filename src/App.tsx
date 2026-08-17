@@ -53,6 +53,8 @@ import { StringListTable } from './components/StringListTable';
 import { TranslationEditor } from './components/TranslationEditor';
 import { MultiLanguageGridView } from './components/MultiLanguageGridView';
 
+import { pickNativeDirectory, scanNativeDirectoryFiles, writeNativeTextFile, writeNativeBinaryFile } from './lib/nativeFS';
+
 import { NewKeyModal } from './components/NewKeyModal';
 import { AddLanguageModal } from './components/AddLanguageModal';
 import { RawPoModal } from './components/RawPoModal';
@@ -86,6 +88,53 @@ export default function App() {
   );
 
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+
+  const [zoomLevel, setZoomLevel] = useState<number>(() => {
+    const saved = localStorage.getItem('openpo_zoom');
+    return saved ? parseInt(saved, 10) : 100;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('openpo_zoom', zoomLevel.toString());
+  }, [zoomLevel]);
+
+  useEffect(() => {
+    const handleKeyZoom = (e: KeyboardEvent) => {
+      const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+      if (isCmdOrCtrl) {
+        if (e.key === '=' || e.key === '+') {
+          e.preventDefault();
+          setZoomLevel((prev) => Math.min(prev + 10, 250)); // Max 250%
+        } else if (e.key === '-') {
+          e.preventDefault();
+          setZoomLevel((prev) => Math.max(prev - 10, 60)); // Min 50%
+        } else if (e.key === '0') {
+          e.preventDefault();
+          setZoomLevel(100); // Сброс на 100%
+        }
+      }
+    };
+
+    const handleWheelZoom = (e: WheelEvent) => {
+      const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+      if (isCmdOrCtrl) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          setZoomLevel((prev) => Math.min(prev + 10, 250));
+        } else {
+          setZoomLevel((prev) => Math.max(prev - 10, 50));
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyZoom, { passive: false });
+    window.addEventListener('wheel', handleWheelZoom, { passive: false });
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyZoom);
+      window.removeEventListener('wheel', handleWheelZoom);
+    };
+  }, []);
 
   const [localDirState, setLocalDirState] = useState<LocalDirectoryState>({
     isConnected: false,
@@ -365,50 +414,94 @@ export default function App() {
     }
   }, []);
 
-  const handleOpenLocalFolder = async () => {
-    const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
-
-    // In top-level windows, try native showDirectoryPicker for two-way live disk write
-    if (!isInIframe && 'showDirectoryPicker' in window) {
-      try {
-        // @ts-ignore
-        const dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-        const result = await scanLocalDirectory(dirHandle);
-
-        if (result.workspaces.length === 0) {
-          showToast('No .pot or .po gettext files found in folder.', 'warning');
-          return;
-        }
-
-        setWorkspaces(result.workspaces);
-        setActiveWorkspaceId(result.workspaces[0].id);
-        setLocalDirState({
-          isConnected: true,
-          dirName: result.dirName,
-          dirHandle: result.dirHandle,
-          autoCompileMo: settings.autoCompileMoOnSave ?? true,
-          totalFiles: result.totalFilesFound,
-        });
-
-        showToast(
-          `Opened folder "${result.dirName}" with ${result.workspaces.length} domains and ${result.totalFilesFound} files. Direct disk sync active!`,
-          'success'
-        );
-        return;
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          return;
-        }
-        console.warn('showDirectoryPicker unavailable or blocked in frame, falling back to directory file picker:', err);
+  const loadFolderNatively = async (dirPath: string) => {
+    try {
+      const files = await scanNativeDirectoryFiles(dirPath);
+      if (files.length === 0) {
+        showToast(`No gettext files found in: ${dirPath}`, 'warning');
+        return false;
       }
-    }
 
-    // Fallback: Trigger standard HTML5 webkitdirectory picker (works in iframes and all browsers)
-    if (folderInputRef.current) {
-      folderInputRef.current.value = '';
-      folderInputRef.current.click();
+      const potFileScanned = files.find((f) => f.name.endsWith('.pot'));
+      const poFilesScanned = files.filter((f) => f.name.endsWith('.po'));
+
+      const domainName = potFileScanned ? potFileScanned.name.replace(/\.pot$/, '') : 'messages';
+      
+      const parsedPot = potFileScanned 
+        ? parsePoContent(potFileScanned.content)
+        : { header: { mimeVersion: '1.0', contentType: 'text/plain; charset=UTF-8', contentTransferEncoding: '8bit' }, entries: [] };
+
+      const potRecord: PotFileRecord = {
+        id: `pot_${Date.now()}`,
+        filename: potFileScanned ? potFileScanned.name : `${domainName}.pot`,
+        domainName,
+        header: parsedPot.header,
+        entries: parsedPot.entries,
+      };
+
+      const poRecords: PoFileRecord[] = poFilesScanned.map((f, i) => {
+        const parsed = parsePoContent(f.content);
+        const langCode = parsed.header.language || f.name.replace(/\.po$/, '');
+        return {
+          id: `po_${langCode}_${Date.now()}_${i}`,
+          filename: f.name,
+          language: langCode,
+          languageName: langCode.toUpperCase(),
+          header: parsed.header,
+          entries: parsed.entries,
+        };
+      });
+
+      const loadedWorkspace: Workspace = {
+        id: `ws_${Date.now()}`,
+        name: domainName,
+        domainName,
+        potFile: potRecord,
+        poFiles: poRecords,
+        activeFileId: poRecords[0]?.id || 'pot',
+        activeEntryId: potRecord.entries[0]?.id || null,
+        createdAt: new Date().toISOString(),
+      };
+
+      setWorkspaces([loadedWorkspace]);
+      setActiveWorkspaceId(loadedWorkspace.id);
+      setLocalDirState({
+        isConnected: true,
+        dirName: dirPath,
+        dirHandle: null,
+        autoCompileMo: settings.autoCompileMoOnSave ?? true,
+        totalFiles: files.length,
+      });
+
+      // Обновляем список недавних папок (поднимаем текущую наверх)
+      setRecentFolders((prev) => {
+        const filtered = prev.filter((p) => p !== dirPath);
+        return [dirPath, ...filtered].slice(0, 10); // Храним только 10 последних
+      });
+
+      showToast(`Loaded workspace from: ${dirPath}`, 'success');
+      return true;
+    } catch (err: any) {
+      console.error('Failed to load native directory:', err);
+      const errorMessage = err?.message || err;
+      showToast(`Error loading directory: ${errorMessage}`, 'warning');
+      return false;
     }
   };
+
+  const handleOpenLocalFolder = async () => {
+    const dirPath = await pickNativeDirectory();
+    if (!dirPath) return;
+    await loadFolderNatively(dirPath);
+  };
+
+  useEffect(() => {
+    const savedRecents = JSON.parse(localStorage.getItem('openpo_recents') || '[]');
+    if (savedRecents && savedRecents.length > 0) {
+      loadFolderNatively(savedRecents[0]).catch(console.error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleFolderInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -453,6 +546,15 @@ export default function App() {
     });
     showToast('Local folder disconnected from live disk sync.', 'info');
   };
+
+  const [recentFolders, setRecentFolders] = useState<string[]>(() => {
+    const saved = localStorage.getItem('openpo_recents');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('openpo_recents', JSON.stringify(recentFolders));
+  }, [recentFolders]);
 
   const handleSyncLocalFolder = async () => {
     if (!localDirState.isConnected) {
@@ -1401,7 +1503,14 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#090B0E] text-[#E2E8F0] font-sans antialiased overflow-hidden">
+    <div 
+      className="flex flex-col bg-[#090B0E] text-[#E2E8F0] font-sans antialiased overflow-hidden origin-top-left"
+      style={{
+        transform: `scale(${zoomLevel / 100})`,
+        width: `${10000 / zoomLevel}vw`,
+        height: `${10000 / zoomLevel}vh`,
+      }}
+    >
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div
@@ -1442,6 +1551,8 @@ export default function App() {
         onRedo={handleRedo}
         fuzzyThreshold={settings.fuzzyMatchingThreshold}
         gitModifiedCount={gitModifiedCount}
+        recentFolders={recentFolders}
+        onOpenRecent={(path) => loadFolderNatively(path)}
       />
 
       {/* 2. VS Code Style Workspaces Tab Bar */}
@@ -1675,15 +1786,7 @@ export default function App() {
       <GitModal
         isOpen={isGitModalOpen}
         onClose={() => setIsGitModalOpen(false)}
-        workspace={currentWorkspace}
-        onInitGit={handleInitGit}
-        onStageFile={handleStageFile}
-        onUnstageFile={handleUnstageFile}
-        onStageAll={handleStageAll}
-        onUnstageAll={handleUnstageAll}
-        onCommit={handleCommit}
-        onRevertFile={handleRevertFile}
-        onRestoreCommit={handleRestoreCommit}
+        folderPath={localDirState.isConnected ? localDirState.dirName : null}
         authorName={settings.authorName}
         authorEmail={settings.authorEmail}
       />

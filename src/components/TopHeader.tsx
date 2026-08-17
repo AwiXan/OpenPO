@@ -18,6 +18,7 @@ import {
   Unlink,
   Check,
   HelpCircle,
+  Clock, // <-- ДОБАВИТЬ СЮДА
 } from 'lucide-react';
 import { Workspace, LocalDirectoryState } from '../types/gettext';
 import { useTranslation, SUPPORTED_UI_LANGUAGES, UiLanguage } from '../lib/i18n';
@@ -46,6 +47,8 @@ interface TopHeaderProps {
   onRedo: () => void;
   fuzzyThreshold: number;
   gitModifiedCount: number;
+  recentFolders: string[];
+  onOpenRecent: (path: string) => void;
 }
 
 type MenuKey = 'file' | 'edit' | 'view' | 'tools' | 'language' | 'help' | null;
@@ -74,6 +77,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onRedo,
   fuzzyThreshold,
   gitModifiedCount,
+  recentFolders,
+  onOpenRecent,
 }) => {
   const { language: currentUiLang, setLanguage: setUiLanguage, t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -172,7 +177,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <div className="flex items-center space-x-2.5">
           {/* App Branding */}
           <div className="flex items-center space-x-1.5 font-medium text-[#E2E8F0] pr-2">
-            <span className="text-[#3B82F6] font-bold text-sm">◇</span>
             <span className="tracking-tight font-semibold text-xs text-white">OpenPO</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#1C2128] text-[#38BDF8] border border-[#2D3139] font-mono">
               v1.0
@@ -220,10 +224,41 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                   >
                     <div className="flex items-center gap-2">
                       <FolderOpen className="w-4 h-4 text-[#3B82F6]" />
-                      <span>{t('menu.openFiles')}</span>
+                      <span>{t('menu.openFiles', 'Open .PO / .POT Files...')}</span>
                     </div>
                     <span className="text-[10px] text-[#64748B] font-mono">.po / .pot</span>
                   </button>
+                  {recentFolders && recentFolders.length > 0 && (
+                    <>
+                      <div className="border-t border-[#2D3139] my-1" />
+                      <div className="px-3 py-1 text-[10px] font-bold text-[#64748B] uppercase tracking-wider">
+                        {t('menu.recents', 'Recent Folders')}
+                      </div>
+                      {recentFolders.slice(0, 4).map((path) => {
+                        const folderName = path.split(/[\\/]/).pop();
+                        return (
+                          <button
+                            key={path}
+                            onClick={() => {
+                              onOpenRecent(path);
+                              setActiveMenu(null);
+                            }}
+                            className="w-full px-3 py-1.5 flex items-center justify-between text-left text-[#94A3B8] hover:bg-[#1E293B] hover:text-[#38BDF8] transition-colors cursor-pointer group"
+                          >
+                            <div className="flex items-center gap-2 truncate">
+                              <Clock className="w-3.5 h-3.5 text-[#64748B] group-hover:text-[#38BDF8] shrink-0" />
+                              <span className="truncate text-[11px] text-[#E2E8F0] group-hover:text-[#38BDF8]">
+                                {folderName}
+                              </span>
+                            </div>
+                            <span className="text-[9px] font-mono opacity-50 truncate max-w-[80px] ml-2">
+                              {path}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </>
+                  )}
 
                   <div className="border-t border-[#2D3139] my-1" />
 

@@ -36,8 +36,12 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         {/* Modal Header */}
         <div className="relative px-6 pt-6 pb-5 border-b border-[#2D3139] bg-gradient-to-b from-[#1C2128] to-[#16191E] flex items-start justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex items-center justify-center text-white shadow-lg shadow-blue-500/20 border border-blue-400/30">
-              <span className="text-2xl font-black">◇</span>
+            <div className="w-12 h-12 rounded-xl shadow-lg shadow-blue-500/20 border border-[#2D3139] overflow-hidden shrink-0 bg-[#090B0E]">
+              <img 
+                src="/icons/128x128.png" 
+                alt="OpenPO App Icon" 
+                className="w-full h-full object-contain"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -63,9 +67,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         {/* Modal Content */}
         <div className="p-6 space-y-5 overflow-y-auto flex-1 text-xs custom-scrollbar">
           {/* Vibecoded Notice Callout */}
-          <div className="bg-gradient-to-r from-[#3B82F615] via-[#1E293B] to-[#3B82F608] border border-[#3B82F633] rounded-xl p-4 relative overflow-hidden">
+          <div className="bg-gradient-to-r from-[#f63b3b15] via-[#3b1e1e] to-[#f63b3b08] border border-[#f63b3b33] rounded-xl p-4 relative overflow-hidden">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-[#3B82F622] text-[#38BDF8] shrink-0 mt-0.5">
+              <div className="p-2 rounded-lg bg-[#f63b3b22] text-[#f83838] shrink-0 mt-0.5">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div className="space-y-1.5 text-left">
@@ -76,7 +80,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                   </span>
                 </div>
                 <p className="text-[#CBD5E1] text-xs leading-relaxed italic">
-                  "{t('about.vibecodedNote', 'This app is 100% vibecoded asf (with guidance by AwiXan, but i, like, did nothing). And I kinda feel guilty, but just for the sake of convenience, I think i have to release this app.')}"
+                  "{t('about.vibecodedNote', 'This app is 100% vibecoded asf')}"
                 </p>
               </div>
             </div>
