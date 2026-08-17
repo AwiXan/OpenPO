@@ -13,7 +13,7 @@ jobs:
         include:
           - os: windows-latest
             name: windows
-          - os: ubuntu-22_04
+          - os: ubuntu-22.04
             name: linux
           - os: macos-latest
             name: macos
@@ -32,7 +32,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies (Ubuntu only)
-        if: matrix.os == 'ubuntu-22_04'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
