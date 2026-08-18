@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Zap, CheckCircle2 } from 'lucide-react';
+import { Database, Zap, CheckCircle2 } from 'lucide-react';
 import { Workspace } from '../types/gettext';
 import { Modal } from './ui/Modal';
 import { useTranslation } from '../lib/i18n';
@@ -71,7 +71,7 @@ export const BatchOperationsModal: React.FC<BatchOperationsModalProps> = ({
       onClose={onClose}
       title={t('batch.title')}
       subtitle={t('batch.subtitle')}
-      icon={<Sparkles className="w-4 h-4" />}
+      icon={<Database className="w-4 h-4" />}
       maxWidth="max-w-lg"
       footer={modalFooter}
     >
@@ -137,7 +137,7 @@ export const BatchOperationsModal: React.FC<BatchOperationsModalProps> = ({
             onClick={handleApplyTm}
             className="w-full py-2 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-blue-500/10 cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Database className="w-3.5 h-3.5" />
             <span>{t('batch.runTm')}</span>
           </button>
         </div>

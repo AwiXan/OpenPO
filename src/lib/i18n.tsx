@@ -44,7 +44,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Multi-Language Matrix Grid',
     'menu.viewRaw': 'Raw PO/POT Source Inspector',
     'menu.preferences': 'Preferences & Settings...',
-    'menu.about': 'About OpenPO 1.0',
+    'menu.about': 'About OpenPO',
     'menu.shortcuts': 'Keyboard Shortcuts Reference',
 
     // Header Toolbar
@@ -205,7 +205,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Close',
 
     // About Modal
-    'about.title': 'About OpenPO 1.0',
+    'about.title': 'About OpenPO',
     'about.subtitle': 'Modular GNU gettext (.po / .pot / .mo) Localization Suite',
     'about.vibecodedTitle': 'AI SLOP ALERT!',
     'about.aiCraft': '100% AI Craft',
@@ -366,13 +366,13 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'batch.reviewBtn': 'Flag for Review',
 
     'addLang.title': 'Add Target Language (.po)',
-    'addLang.choose': 'Choose Language:',
-    'addLang.customToggle': 'Specify custom ISO language code',
-    'addLang.customCode': 'Code (e.g. sv_SE):',
-    'addLang.customName': 'Language Name:',
-    'addLang.formula': 'Plural Forms Formula:',
-    'addLang.forms': '{count} forms',
-    'addLang.create': 'Create {code}.po',
+    'addLang.createButton': 'Create {code}.po',
+    'addLang.chooseLanguage': 'Choose Language:',
+    'addLang.customCheckbox': 'Specify custom ISO language code',
+    'addLang.codeLabel': 'Code (e.g. sv_SE):',
+    'addLang.nameLabel': 'Language Name:',
+    'addLang.pluralFormula': 'Plural Forms Formula:',
+    'addLang.formsCount': '{count} forms',
 
     'toast.synced': 'Synced ${savedPo} .po files and compiled ${savedMo} .mo binaries directly to disk!',
     'toast.loaded': 'Loaded workspace from: ${dirPath}',
@@ -403,12 +403,12 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.disconnectFolder': 'Отключить локальную папку',
     'menu.undo': 'Отменить (Ctrl+Z)',
     'menu.redo': 'Повторить (Ctrl+Y)',
-    'menu.batchTm': 'Пакетное заполнение TM...',
+    'menu.batchTm': 'Автоперевод...',
     'menu.viewEditor': 'Редактор одного языка',
     'menu.viewMatrix': 'Матрица переводов',
     'menu.viewRaw': 'Исходный код PO/POT',
     'menu.preferences': 'Настройки и параметры...',
-    'menu.about': 'О программе OpenPO 1.0',
+    'menu.about': 'О программе OpenPO',
     'menu.shortcuts': 'Горячие клавиши',
 
     // Header Toolbar
@@ -416,7 +416,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'header.open': 'Открыть',
     'header.openFolder': 'Папка',
     'header.addLanguage': 'Добавить язык',
-    'header.batchTm': 'Пакетный TM',
+    'header.batchTm': 'Автоперевод',
     'header.compileMo': 'Компиляция .MO',
     'header.git': 'Git',
     'header.exportZip': 'Экспорт ZIP',
@@ -569,7 +569,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Закрыть',
 
     // About Modal
-    'about.title': 'О программе OpenPO 1.0',
+    'about.title': 'О программе OpenPO',
     'about.subtitle': 'Модульная среда локализации GNU gettext (.po / .pot / .mo)',
     'about.vibecodedTitle': 'ОСТОРОЖНО ИИ-СЛОП!',
     'about.aiCraft': '100% ИИ-разработка',
@@ -715,7 +715,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'rawPo.save': 'Сохранить и синхронизировать',
     'rawPo.download': 'Скачать',
 
-    'batch.title': 'Пакетные операции и память переводов (TM)',
+    'batch.title': 'Массовые операции и память переводов (TM)',
     'batch.subtitle': 'Автоматизируйте рутинную локализацию в 1 клик.',
     'batch.selectLang': 'Выберите целевой язык:',
     'batch.fuzzyToggle': 'Неточные (≥{threshold}%)',
@@ -729,14 +729,14 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'batch.reviewDesc': 'Помечает измененные строки как fuzzy.',
     'batch.reviewBtn': 'На проверку',
 
-    'addLang.title': 'Добавить целевой язык (.po)',
-    'addLang.choose': 'Выберите язык:',
-    'addLang.customToggle': 'Указать собственный ISO-код языка',
-    'addLang.customCode': 'Код (напр. sv_SE):',
-    'addLang.customName': 'Название языка:',
-    'addLang.formula': 'Формула множественных форм:',
-    'addLang.forms': 'форм: {count}',
-    'addLang.create': 'Создать {code}.po',
+    'addLang.title': 'Добавить язык перевода (.po)',
+    'addLang.createButton': 'Создать {code}.po',
+    'addLang.chooseLanguage': 'Выберите язык:',
+    'addLang.customCheckbox': 'Указать собственный код языка ISO',
+    'addLang.codeLabel': 'Код (например, sv_SE):',
+    'addLang.nameLabel': 'Название языка:',
+    'addLang.pluralFormula': 'Формула множественных форм:',
+    'addLang.formsCount': '{count} форм(ы)',
 
     'toast.synced': 'Синхронизировано .po файлов: ${savedPo}, скомпилировано .mo бинарников: ${savedMo} прямо на диск!',
     'toast.loaded': 'Рабочая область загружена из: ${dirPath}',
@@ -772,7 +772,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Matriz multilingüe',
     'menu.viewRaw': 'Código fuente PO/POT',
     'menu.preferences': 'Preferencias y ajustes...',
-    'menu.about': 'Acerca de OpenPO 1.0',
+    'menu.about': 'Acerca de OpenPO',
     'menu.shortcuts': 'Atajos de teclado',
 
     // Header Toolbar
@@ -931,7 +931,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Cerrar',
 
     // About Modal
-    'about.title': 'Acerca de OpenPO 1.0',
+    'about.title': 'Acerca de OpenPO',
     'about.subtitle': 'Gettexte modulaire GNU (.po / .pot/. mo) Suite de localisation',
     'about.vibecodedTitle': 'Vibecodeado con AwiXan',
     'about.aiCraft': '100% Creación IA',
@@ -1092,13 +1092,13 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'batch.reviewBtn': 'Marcar para revisión',
 
     'addLang.title': 'Añadir idioma de destino (.po)',
-    'addLang.choose': 'Elegir idioma:',
-    'addLang.customToggle': 'Especificar un código de idioma ISO personalizado',
-    'addLang.customCode': 'Código (p. ej., sv_SE):',
-    'addLang.customName': 'Nombre del idioma:',
-    'addLang.formula': 'Fórmula de formas plurales:',
-    'addLang.forms': '{count} formas',
-    'addLang.create': 'Crear {code}.po',
+    'addLang.createButton': 'Crear {code}.po',
+    'addLang.chooseLanguage': 'Elegir idioma:',
+    'addLang.customCheckbox': 'Especificar código de idioma ISO personalizado',
+    'addLang.codeLabel': 'Código (p. ej., sv_SE):',
+    'addLang.nameLabel': 'Nombre del idioma:',
+    'addLang.pluralFormula': 'Fórmula de formas plurales:',
+    'addLang.formsCount': '{count} formas',
 
 
     'toast.synced': '¡Sincronizados ${savedPo} archivos .po y compilados ${savedMo} binarios .mo directamente en el disco!',
@@ -1135,7 +1135,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Matrice multilingue',
     'menu.viewRaw': 'Source brute PO/POT',
     'menu.preferences': 'Préférences & paramètres...',
-    'menu.about': 'À propos d\'OpenPO 1.0',
+    'menu.about': 'À propos d\'OpenPO',
     'menu.shortcuts': 'Raccourcis clavier',
 
     // Header Toolbar
@@ -1294,7 +1294,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Fermer',
 
     // About Modal
-    'about.title': 'À propos d\'OpenPO 1.0',
+    'about.title': 'À propos d\'OpenPO',
     'about.subtitle': 'Gettexte modulaire GNU (.po / .pot/. mo) Suite de localisation',
     'about.vibecodedTitle': 'Vibecodé avec AwiXan',
     'about.aiCraft': '100% Création IA',
@@ -1455,13 +1455,13 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'batch.reviewBtn': 'Signaler pour révision',
 
     'addLang.title': 'Ajouter une langue cible (.po)',
-    'addLang.choose': 'Choisir la langue :',
-    'addLang.customToggle': 'Spécifier un code de langue ISO personnalisé',
-    'addLang.customCode': 'Code (ex. sv_SE) :',
-    'addLang.customName': 'Nom de la langue :',
-    'addLang.formula': 'Formule des formes pluriels :',
-    'addLang.forms': '{count} formes',
-    'addLang.create': 'Créer {code}.po',
+    'addLang.createButton': 'Créer {code}.po',
+    'addLang.chooseLanguage': 'Choisir la langue :',
+    'addLang.customCheckbox': 'Spécifier un code de langue ISO personnalisé',
+    'addLang.codeLabel': 'Code (ex. sv_SE) :',
+    'addLang.nameLabel': 'Nom de la langue :',
+    'addLang.pluralFormula': 'Formule des formes plurielles :',
+    'addLang.formsCount': '{count} formes',
 
 
     'toast.synced': '${savedPo} fichiers .po synchronisés et ${savedMo} binaires .mo compilés directement sur le disque !',
@@ -1498,7 +1498,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Mehrsprachige Matrix',
     'menu.viewRaw': 'PO/POT-Quellcode-Inspektor',
     'menu.preferences': 'Einstellungen & Optionen...',
-    'menu.about': 'Über OpenPO 1.0',
+    'menu.about': 'Über OpenPO',
     'menu.shortcuts': 'Tastenkombinationen',
 
     // Header Toolbar
@@ -1657,7 +1657,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Schließen',
 
     // About Modal
-    'about.title': 'Über OpenPO 1.0',
+    'about.title': 'Über OpenPO',
     'about.subtitle': 'Moderne GNU gettext (.po / .pot / .mo) Lokalisierungssuite',
     'about.vibecodedTitle': 'Gevibecoded mit AwiXan',
     'about.aiCraft': '100% KI-Handwerk',
@@ -1818,13 +1818,13 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'batch.reviewBtn': 'Für Prüfung markieren',
 
     'addLang.title': 'Zielsprache hinzufügen (.po)',
-    'addLang.choose': 'Sprache auswählen:',
-    'addLang.customToggle': 'Benutzerdefinierten ISO-Sprachcode angeben',
-    'addLang.customCode': 'Code (z. B. sv_SE):',
-    'addLang.customName': 'Sprachname:',
-    'addLang.formula': 'Formel für Pluralformen:',
-    'addLang.forms': '{count} Formen',
-    'addLang.create': '{code}.po erstellen',
+    'addLang.createButton': '{code}.po erstellen',
+    'addLang.chooseLanguage': 'Sprache auswählen:',
+    'addLang.customCheckbox': 'Benutzerdefinierten ISO-Sprachcode angeben',
+    'addLang.codeLabel': 'Code (z. B. sv_SE):',
+    'addLang.nameLabel': 'Sprachname:',
+    'addLang.pluralFormula': 'Formel für Pluralformen:',
+    'addLang.formsCount': '{count} Formen',
 
 
     'toast.synced': '${savedPo} .po-Dateien synchronisiert und ${savedMo} .mo-Binärdateien direkt auf die Festplatte kompiliert!',
@@ -1861,7 +1861,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': '多语言矩阵网格',
     'menu.viewRaw': 'PO/POT 源码查看器',
     'menu.preferences': '首选项与设置...',
-    'menu.about': '关于 OpenPO 1.0',
+    'menu.about': '关于 OpenPO',
     'menu.shortcuts': '键盘快捷键说明',
 
     // Header Toolbar
@@ -2020,7 +2020,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': '关闭',
 
     // About Modal
-    'about.title': '关于 OpenPO 1.0',
+    'about.title': '关于 OpenPO',
     'about.subtitle': '现代专业 GNU gettext (.po / .pot / .mo) 本地化套件',
     'about.vibecodedTitle': '与 AwiXan 共同氛围编码',
     'about.aiCraft': '100% AI 创作',
@@ -2181,13 +2181,13 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'batch.reviewBtn': '标记以供审核',
 
     'addLang.title': '添加目标语言 (.po)',
-    'addLang.choose': '选择语言：',
-    'addLang.customToggle': '指定自定义 ISO 语言代码',
-    'addLang.customCode': '代码 (例如 sv_SE):',
-    'addLang.customName': '语言名称：',
-    'addLang.formula': '复数形式公式：',
-    'addLang.forms': '{count} 种形式',
-    'addLang.create': '创建 {code}.po',
+    'addLang.createButton': '创建 {code}.po',
+    'addLang.chooseLanguage': '选择语言：',
+    'addLang.customCheckbox': '指定自定义 ISO 语言代码',
+    'addLang.codeLabel': '代码 (例如 sv_SE)：',
+    'addLang.nameLabel': '语言名称：',
+    'addLang.pluralFormula': '复数形式公式：',
+    'addLang.formsCount': '{count} 种形式',
 
 
     'toast.synced': '已同步 ${savedPo} 个 .po 文件，并将 ${savedMo} 个 .mo 二进制文件直接编译到磁盘！',
@@ -2224,7 +2224,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': '多言語マトリクス',
     'menu.viewRaw': 'PO/POT 生ソースコード',
     'menu.preferences': '環境設定＆オプション...',
-    'menu.about': 'OpenPO 1.0 について',
+    'menu.about': 'OpenPO について',
     'menu.shortcuts': 'ショートカット一覧',
 
     // Header Toolbar
@@ -2383,7 +2383,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': '閉じる',
 
     // About Modal
-    'about.title': 'OpenPO 1.0 について',
+    'about.title': 'OpenPO について',
     'about.subtitle': '最新のプロフェッショナル GNU gettext (.po / .pot / .mo) ローカリゼーション環境',
     'about.vibecodedTitle': 'AwiXan とのバイブコーディング',
     'about.aiCraft': '100% AI開発',
@@ -2543,14 +2543,14 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'batch.reviewDesc': '部分的に変更された文字列を、レビュー担当者向けにファジーとしてフラグを立てます。',
     'batch.reviewBtn': 'レビュー用にフラグを設定',
 
-    'addLang.title': '対象言語を追加 (.po)',
-    'addLang.choose': '言語を選択:',
-    'addLang.customToggle': 'カスタム ISO 言語コードを指定する',
-    'addLang.customCode': 'コード (例: sv_SE):',
-    'addLang.customName': '言語名:',
-    'addLang.formula': '複数形公式:',
-    'addLang.forms': '{count} 個の形式',
-    'addLang.create': '{code}.po を作成',
+    'addLang.title': 'ターゲット言語を追加 (.po)',
+    'addLang.createButton': '{code}.po を作成',
+    'addLang.chooseLanguage': '言語を選択:',
+    'addLang.customCheckbox': 'カスタム ISO 言語コードを指定',
+    'addLang.codeLabel': 'コード (例: sv_SE):',
+    'addLang.nameLabel': '言語名:',
+    'addLang.pluralFormula': '複数形フォーミュラ:',
+    'addLang.formsCount': '{count} 形式',
 
 
     'toast.synced': '${savedPo}個の.poファイルを同期し、${savedMo}個の.moバイナリをディスクに直接コンパイルしました！',

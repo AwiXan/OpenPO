@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Sparkles,
+  Database,
   ArrowRight,
   ArrowLeft,
   Copy,
@@ -653,13 +653,12 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
               <div className="bg-[#090B0E] rounded border border-[#2D3139] p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-wider flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+                    <Database className="w-3.5 h-3.5 text-[#F59E0B]" />
                     <span>{t('editor.tmSuggestions')}</span>
                     <span className="px-1.5 py-0.2 rounded bg-[#F59E0B1A] text-[#F59E0B] font-mono text-[9px] border border-[#F59E0B33]">
                       ≥ {fuzzyThreshold}% match
                     </span>
                   </div>
-                  <span className="text-[10px] text-[#64748B]">{t('editor.crossTm')}</span>
                 </div>
 
                 <div className="space-y-1.5">

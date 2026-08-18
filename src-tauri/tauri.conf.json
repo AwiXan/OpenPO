@@ -12,17 +12,18 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "OpenPO",
-        "width": 1920,
-        "height": 1080,
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
         "resizable": true,
         "fullscreen": false,
-        "backgroundColor": "#121212"
+        "backgroundColor": "#0E1116",
+        "visible": false
       }
-    ],
-    "security": {
-      "csp": null
-    }
+    ]
   },
   "bundle": {
     "active": true,

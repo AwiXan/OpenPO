@@ -40,7 +40,6 @@ export const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
   const [isCustom, setIsCustom] = useState(false);
   const { t } = useTranslation();
 
-
   const activeCode = isCustom ? customCode : selectedPreset;
   const activePreset = LANGUAGE_PRESETS.find((p) => p.code === activeCode);
   const activeName = isCustom ? customName : activePreset?.name || activeCode;
@@ -54,6 +53,9 @@ export const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
     onAddLanguage(activeCode.trim(), activeName.trim(), pluralRule.formula);
     onClose();
   };
+
+  const createButtonText = (t('addLang.createButton') || 'Create {code}.po').replace('{code}', activeCode || 'new');
+  const formsCountText = (t('addLang.formsCount') || '{count} forms').replace('{count}', String(pluralRule.nplurals));
 
   const modalFooter = (
     <div className="w-full flex items-center justify-end gap-2">
@@ -69,7 +71,7 @@ export const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
         form="add-lang-form"
         className="px-4 py-1.5 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold shadow-lg shadow-blue-500/20 cursor-pointer transition-all"
       >
-        Create {activeCode}.po
+        {createButtonText}
       </button>
     </div>
   );
@@ -78,14 +80,16 @@ export const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Add Target Language (.po)"
+      title={t('addLang.title') || 'Add Target Language (.po)'}
       icon={<Globe className="w-4 h-4" />}
       maxWidth="max-w-md"
       footer={modalFooter}
     >
       <form id="add-lang-form" onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div>
-          <label className="block text-[#E2E8F0] font-medium mb-1.5">Choose Language:</label>
+          <label className="block text-[#E2E8F0] font-medium mb-1.5">
+            {t('addLang.chooseLanguage') || 'Choose Language:'}
+          </label>
           <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto p-1 bg-[#090B0E] rounded border border-[#2D3139] custom-scrollbar">
             {LANGUAGE_PRESETS.map((preset) => {
               const isAlreadyAdded = existingLanguages.includes(preset.code);
@@ -125,13 +129,17 @@ export const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
               onChange={(e) => setIsCustom(e.target.checked)}
               className="rounded bg-[#16191E] border-[#2D3139] text-[#3B82F6] focus:ring-0"
             />
-            <span className="text-[#94A3B8]">Specify custom ISO language code</span>
+            <span className="text-[#94A3B8]">
+              {t('addLang.customCheckbox') || 'Specify custom ISO language code'}
+            </span>
           </label>
 
           {isCustom && (
             <div className="grid grid-cols-2 gap-2 bg-[#090B0E] p-2.5 rounded border border-[#2D3139]">
               <div>
-                <label className="text-[10px] text-[#64748B] block mb-1">Code (e.g. sv_SE):</label>
+                <label className="text-[10px] text-[#64748B] block mb-1">
+                  {t('addLang.codeLabel') || 'Code (e.g. sv_SE):'}
+                </label>
                 <input
                   type="text"
                   required={isCustom}
@@ -141,7 +149,9 @@ export const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-[#64748B] block mb-1">Language Name:</label>
+                <label className="text-[10px] text-[#64748B] block mb-1">
+                  {t('addLang.nameLabel') || 'Language Name:'}
+                </label>
                 <input
                   type="text"
                   required={isCustom}
@@ -157,8 +167,10 @@ export const AddLanguageModal: React.FC<AddLanguageModalProps> = ({
         {/* Plural Rule Preview */}
         <div className="bg-[#090B0E] p-3 rounded border border-[#2D3139] space-y-1 text-[#94A3B8]">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="font-semibold text-[#E2E8F0]">Plural Forms Formula:</span>
-            <span className="font-mono text-[#3B82F6]">{pluralRule.nplurals} forms</span>
+            <span className="font-semibold text-[#E2E8F0]">
+              {t('addLang.pluralFormula') || 'Plural Forms Formula:'}
+            </span>
+            <span className="font-mono text-[#3B82F6]">{formsCountText}</span>
           </div>
           <div className="font-mono text-[10px] text-[#94A3B8] break-all bg-[#16191E] p-1.5 rounded border border-[#2D3139]">
             {pluralRule.formula}

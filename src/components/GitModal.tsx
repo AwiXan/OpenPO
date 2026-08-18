@@ -549,7 +549,7 @@ export const GitModal: React.FC<GitModalProps> = ({
                       {t('git.unstagedChanges')} ({unstagedEntries.length})
                     </div>
                     {unstagedEntries.length === 0 ? (
-                      <div className="px-2 py-2 text-[11px] text-[#64748B] italic">{t('git.noFilesUnstaged')}</div>
+                      <div></div>
                     ) : (
                       <div className="space-y-1">
                         {unstagedEntries.map((entry) => {

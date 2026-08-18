@@ -52,6 +52,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   showNewlinesVisible: true,
 };
 
+
+
 export default function App() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
     const savedSession = localStorage.getItem('openpo_session_workspaces');
@@ -96,6 +98,26 @@ export default function App() {
 
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'info' | 'success' | 'warning' } | null>(null);
   const { t } = useTranslation();
+
+  const [isSplashVisible, setIsSplashVisible] = useState(true);
+  const [isSplashFading, setIsSplashFading] = useState(false);
+
+  useEffect(() => {
+    const splash = document.getElementById('app-splashscreen');
+    if (!splash) return;
+
+    const fadeTimer = setTimeout(() => {
+      splash.classList.add('fade-out');
+
+      const removeTimer = setTimeout(() => {
+        splash.remove();
+      }, 500);
+
+      return () => clearTimeout(removeTimer);
+    }, 300);
+
+    return () => clearTimeout(fadeTimer);
+  }, []);
 
   const showToast = useCallback((text: string, type: 'info' | 'success' | 'warning' = 'info') => {
     setToastMessage({ text, type });
@@ -262,63 +284,60 @@ export default function App() {
   }, [currentWorkspace]);
 
   const handleRevertFile = useCallback(async (filename: string) => {
-  const folderPath = currentWorkspace.localDirPath || localDirState.dirName;
-  if (!folderPath) {
-    showToast(t('git.folderNotConnected'), 'warning');
-    return;
-  }
+    const folderPath = currentWorkspace.localDirPath || localDirState.dirName;
+    if (!folderPath) {
+      showToast(t('git.folderNotConnected'), 'warning');
+      return;
+    }
 
-  try {
-    const content = await getFileContentFromHead(folderPath, filename);
-    
-    const parsed = parsePoContent(content);
+    try {
+      const content = await getFileContentFromHead(folderPath, filename);
+      const parsed = parsePoContent(content);
 
-    setWorkspaces((prev) =>
-      prev.map((w) => {
-        if (w.id !== activeWorkspaceId) return w;
-        if (filename.endsWith('.pot') || filename === w.potFile.filename) {
-          return {
-            ...w,
-            potFile: {
-              ...w.potFile,
-              header: parsed.header,
-              entries: parsed.entries,
-              isModified: false,
-            },
-            isModified: true,
-          };
-        }
+      setWorkspaces((prev) =>
+        prev.map((w) => {
+          if (w.id !== activeWorkspaceId) return w;
 
-        const updatedPoFiles = w.poFiles.map((po) => {
-          if (po.filename === filename || filename.endsWith(po.filename)) {
+          if (filename.endsWith('.pot') || filename === w.potFile.filename) {
             return {
-              ...po,
-              header: parsed.header,
-              entries: parsed.entries,
-              isModified: false,
+              ...w,
+              potFile: {
+                ...w.potFile,
+                header: parsed.header,
+                entries: parsed.entries,
+                isModified: false,
+              },
             };
           }
-          return po;
-        });
 
-        return {
-          ...w,
-          poFiles: updatedPoFiles,
-        };
-      })
-    );
+          const updatedPoFiles = w.poFiles.map((po) => {
+            if (po.filename === filename || filename.endsWith(po.filename)) {
+              return {
+                ...po,
+                header: parsed.header,
+                entries: parsed.entries,
+                isModified: false,
+              };
+            }
+            return po;
+          });
 
-    globalTranslationMemory.indexWorkspaces(workspaces);
+          return {
+            ...w,
+            poFiles: updatedPoFiles,
+          };
+        })
+      );
 
-    const successMsg = (t('git.revertSuccess') || 'File "{filename}" successfully reverted to HEAD')
-      .replace('{filename}', filename);
-    showToast(successMsg, 'success');
-  } catch (err: any) {
-    const errMsg = (t('git.revertEditorFailed') || 'Failed to update editor: {error}')
-      .replace('{error}', err?.message || String(err));
-    showToast(errMsg, 'warning');
-  }
-}, [activeWorkspaceId, currentWorkspace.localDirPath, localDirState.dirName, workspaces, showToast]);
+      const successMsg = (t('git.revertSuccess') || 'File "{filename}" successfully reverted to HEAD')
+        .replace('{filename}', filename);
+      showToast(successMsg, 'success');
+    } catch (err: any) {
+      const errMsg = (t('git.revertEditorFailed') || 'Failed to update editor: {error}')
+        .replace('{error}', err?.message || String(err));
+      showToast(errMsg, 'warning');
+    }
+  }, [activeWorkspaceId, currentWorkspace.localDirPath, localDirState.dirName, showToast, t]);
 
   const activePotEntryId = useMemo(() => {
     if (isPotActive) return activeEntryId;
@@ -381,6 +400,7 @@ export default function App() {
       className="app-container"
       style={{ transform: `scale(${zoomLevel / 100})`, width: `${10000 / zoomLevel}vw`, height: `${10000 / zoomLevel}vh` }}
     >
+      
       {toastMessage && (
         <div className={`toast-container ${toastMessage.type === 'success' ? 'toast-success' : toastMessage.type === 'warning' ? 'toast-warning' : 'toast-info'}`}>
           <span>{toastMessage.text}</span>

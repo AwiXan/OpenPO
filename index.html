@@ -2,17 +2,100 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="color-scheme" content="dark" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OpenPO - GNU gettext PO/POT Editor v1.0</title>
     <meta name="description" content="OpenPO - Professional GNU gettext .po and .pot localization editor with automatic .mo compilation, modular domain support, and translation memory." />
-    <meta property="og:title" content="My Google AI Studio App" />
-    <meta property="og:description" content="An application built with Google AI Studio." />
+    <meta property="og:title" content="OpenPO Localization Editor" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
+    
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #0E1116;
+        overflow: hidden;
+      }
+
+      #app-splashscreen {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        background-color: #0E1116;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        user-select: none;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+      }
+
+      #app-splashscreen.fade-out {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .splash-logo {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #FFFFFF;
+      }
+      .splash-logo span {
+        color: #3B82F6;
+      }
+
+      .splash-subtitle {
+        font-size: 11px;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-top: 6px;
+      }
+
+      .splash-loader {
+        width: 140px;
+        height: 3px;
+        background: #1C2128;
+        border-radius: 999px;
+        margin-top: 32px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .splash-loader::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 40%;
+        background: #3B82F6;
+        border-radius: 999px;
+        animation: splash-loading 1.2s infinite ease-in-out;
+      }
+
+      @keyframes splash-loading {
+        0% { left: -40%; width: 30%; }
+        50% { width: 60%; }
+        100% { left: 100%; width: 30%; }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-splashscreen">
+      <div class="splash-logo">Open<span>PO</span></div>
+      <div class="splash-subtitle">Localization Editor</div>
+      <div class="splash-loader"></div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

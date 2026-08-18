@@ -4,7 +4,7 @@ import {
   Plus,
   Download,
   FileCode,
-  Sparkles,
+  FileStack,
   Layers,
   FileSpreadsheet,
   Binary,
@@ -426,7 +426,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     className="w-full px-3 py-1.5 flex items-center justify-between text-left text-[#E2E8F0] hover:bg-[#1E293B] hover:text-[#38BDF8] transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#F59E0B]" />
+                      <FileStack className="w-4 h-4 text-[#F59E0B]" />
                       <span>{t('menu.batchTm')}</span>
                     </div>
                   </button>
@@ -648,18 +648,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <span>{t('menu.about')}</span>
                     </div>
                   </button>
-                  <button
-                    onClick={() => {
-                      onOpenSettingsModal();
-                      setActiveMenu(null);
-                    }}
-                    className="w-full px-3 py-1.5 flex items-center justify-between text-left text-[#E2E8F0] hover:bg-[#1E293B] hover:text-[#38BDF8] transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Settings className="w-4 h-4 text-[#94A3B8]" />
-                      <span>{t('menu.shortcuts')}</span>
-                    </div>
-                  </button>
                 </div>
               )}
             </div>
@@ -805,16 +793,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 <FolderOpen className="w-3.5 h-3.5 text-[#3B82F6]" />
                 <span>{t('header.open')}</span>
               </button>
-
-              <button
-                id="btn-add-language"
-                onClick={onOpenAddLanguageModal}
-                className="px-2.5 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] text-xs flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
-                title="Add target language .po file"
-              >
-                <Layers className="w-3.5 h-3.5 text-[#4ADE80]" />
-                <span>{t('header.addLanguage')}</span>
-              </button>
             </div>
 
             <div className="h-4 w-[1px] bg-[#2D3139] mx-0.5 shrink-0" />
@@ -827,7 +805,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 className="px-2.5 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] text-xs flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
                 title="Batch operations & Translation Memory fill"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#F59E0B]" />
+                <FileStack className="w-3.5 h-3.5 text-[#F59E0B]" />
                 <span>{t('header.batchTm')}</span>
               </button>
 
