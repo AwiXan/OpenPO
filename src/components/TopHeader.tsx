@@ -700,7 +700,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               title="Open a local directory containing .pot and .po files for direct disk editing and automatic .mo generation"
             >
               <FolderSync className="w-3 h-3 text-[#38BDF8]" />
-              <span>Open Local Folder</span>
+              <span>{t('menu.openFolder')}</span>
             </button>
           )}
 

@@ -64,6 +64,8 @@ export interface Workspace {
   isModified?: boolean;
   git?: WorkspaceGitState;
   customCategories?: string[];
+  localDirPath?: string;
+  localDirHandle?: any;
 }
 
 export type FilterStatus = 'all' | 'untranslated' | 'fuzzy' | 'translated' | 'issues' | 'plurals';

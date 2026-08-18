@@ -1,14 +1,67 @@
 @import "tailwindcss";
 
 @layer utilities {
-  /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  /* Hide scrollbar for IE, Edge and Firefox */
   .no-scrollbar {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer components {
+  /* Layout & Main Panels */
+  .app-container {
+    @apply flex flex-col bg-[#090B0E] text-[#E2E8F0] font-sans antialiased overflow-hidden origin-top-left;
+  }
+  
+  /* Toast Notification */
+  .toast-container {
+    @apply fixed bottom-6 left-1/2 z-50 px-4 py-2.5 rounded-lg shadow-xl text-xs font-medium border flex items-center gap-2 backdrop-blur-md;
+    animation: toast-slide-up 0.25s ease-out forwards;
+  }
+  .toast-success {
+    @apply bg-[#10B9811A] border-[#10B981] text-[#4ADE80];
+  }
+  .toast-warning {
+    @apply bg-[#F59E0B1A] border-[#F59E0B] text-[#F59E0B];
+  }
+  .toast-info {
+    @apply bg-[#3B82F61A] border-[#3B82F6] text-[#38BDF8];
+  }
+
+  /* Resizers */
+  .split-resizer {
+    @apply w-1.5 hover:w-2 bg-[#2D3139] hover:bg-[#3B82F6] cursor-col-resize transition-all z-20 flex items-center justify-center shrink-0 select-none relative;
+  }
+  .split-resizer-active {
+    @apply bg-[#3B82F6] !w-2 shadow-[0_0_10px_rgba(59,130,246,0.8)];
+  }
+  .split-resizer-line {
+    @apply w-0.5 h-6 bg-[#64748B] rounded-full transition-colors opacity-60;
+  }
+  
+  /* Standard CSS targeting the child element when the parent is hovered */
+  .split-resizer:hover .split-resizer-line {
+    @apply bg-white opacity-100;
+  }
+
+  /* Footer */
+  .footer-bar {
+    @apply h-6 bg-[#0F1115] border-t border-[#21262D] flex items-center px-3 justify-between text-[11px] text-[#8B949E] select-none font-mono shrink-0 overflow-hidden whitespace-nowrap;
+  }
+}
+
+/* Custom Keyframe for the Toast Animation */
+@keyframes toast-slide-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
   }
 }
 
@@ -30,4 +83,3 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #3B82F6;
 }
-
