@@ -1,6 +1,5 @@
 # AI SLOP WARNING
-> **AI SLOP WARNING** 
-If you're squeamish about software built largely with AI (so-called "vibecoded"), you might want to look for an alternative, like POEdit.
+>If you're squeamish about software built largely with AI (so-called "vibecoded"), you might want to look for an alternative, like POEdit.
 
 I was trying to make a translation for my game; firstly, I decided to do it using spreadsheets, but it was kinda unmodular. Then I found out about **gettext** (`.pot`, `.po`), and I really liked its modularity and how well it works with Git... But when I tried to use it with POEdit, it was just inconvenient: to create new keys you would need to edit the `.pot` file in Notepad, and to sync something you needed premium... Fuck it, I don't compromise, I wanna build a program that would help me, not use me.
 So, here it is:
@@ -22,5 +21,5 @@ If you wanna participate, i'd be more than happy.
 * **Automatic Compilation**: On-the-fly generation of binary `.mo` files upon saving `.po` catalogs.
 * **Matrix Editor**: Side-by-side editing of all target languages in a unified table with newline (`\n`) assistance.
 * **Translation Memory (TM)**: Real-time fuzzy matching engine using the Levenshtein distance algorithm.
-* ~~**Git Integration**: Version control management including staging, commits, and diff inspection right inside the app.~~ (Not implemented yet)
+* **Git Integration**: Version control management including staging, commits, reverts and diff inspection right inside the app.
 * **Plural Forms Support**: Interactive plural rules testing for various linguistic families.
