@@ -96,7 +96,6 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
     setLocalCategory(entry.category || deriveCategory(entry));
     setIsEditingCategory(false);
 
-    // Ensure array has enough elements for all required plural forms
     const requiredForms = entry.msgidPlural ? pluralRule.nplurals : 1;
     const current = [...entry.msgstr];
     while (current.length < requiredForms) {
@@ -104,7 +103,14 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
     }
     setLocalMsgstr(current);
     setActivePluralTab(0);
-  }, [entry?.id, entry?.msgid, pluralRule.nplurals, entry?.msgstr, entry?.category]);
+  }, [
+    entry?.id,
+    entry?.msgid,
+    pluralRule.nplurals,
+    JSON.stringify(entry?.msgstr),
+    entry?.category,
+    entry?.flags
+  ]);
 
   if (!entry) {
     return (
@@ -239,8 +245,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
           <button
             onClick={handleToggleFuzzy}
             className={`px-1.5 py-0.5 rounded text-[10px] font-mono border transition-colors cursor-pointer ${entry.flags.includes('fuzzy')
-                ? 'bg-[#F59E0B1A] text-[#F59E0B] border-[#F59E0B33] hover:bg-[#F59E0B33]'
-                : 'bg-[#16191E] text-[#64748B] border-[#2D3139] hover:text-[#94A3B8]'
+              ? 'bg-[#F59E0B1A] text-[#F59E0B] border-[#F59E0B33] hover:bg-[#F59E0B33]'
+              : 'bg-[#16191E] text-[#64748B] border-[#2D3139] hover:text-[#94A3B8]'
               }`}
             title="Click to toggle fuzzy translation status"
           >
@@ -256,8 +262,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 onClick={onUndo}
                 disabled={!canUndo}
                 className={`p-1 rounded transition-colors cursor-pointer ${canUndo
-                    ? 'text-[#E2E8F0] hover:bg-[#1C2128] hover:text-[#38BDF8]'
-                    : 'text-[#64748B] opacity-40 cursor-not-allowed'
+                  ? 'text-[#E2E8F0] hover:bg-[#1C2128] hover:text-[#38BDF8]'
+                  : 'text-[#64748B] opacity-40 cursor-not-allowed'
                   }`}
                 title="Undo edit (Ctrl+Z)"
               >
@@ -267,8 +273,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 onClick={onRedo}
                 disabled={!canRedo}
                 className={`p-1 rounded transition-colors cursor-pointer ${canRedo
-                    ? 'text-[#E2E8F0] hover:bg-[#1C2128] hover:text-[#38BDF8]'
-                    : 'text-[#64748B] opacity-40 cursor-not-allowed'
+                  ? 'text-[#E2E8F0] hover:bg-[#1C2128] hover:text-[#38BDF8]'
+                  : 'text-[#64748B] opacity-40 cursor-not-allowed'
                   }`}
                 title="Redo edit (Ctrl+Y)"
               >
@@ -500,8 +506,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 <button
                   onClick={() => setShowWhitespaceMarks(!showWhitespaceMarks)}
                   className={`p-1 rounded text-xs border transition-colors cursor-pointer ${showWhitespaceMarks
-                      ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6]'
-                      : 'bg-[#090B0E] text-[#64748B] border-[#2D3139]'
+                    ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6]'
+                    : 'bg-[#090B0E] text-[#64748B] border-[#2D3139]'
                     }`}
                   title={showWhitespaceMarks ? 'Hide visible \\n markers' : 'Show visible \\n markers'}
                 >
@@ -523,8 +529,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 <button
                   onClick={handleToggleFuzzy}
                   className={`flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors cursor-pointer ${entry.flags.includes('fuzzy')
-                      ? 'bg-[#F59E0B1A] border border-[#F59E0B] text-[#F59E0B]'
-                      : 'bg-[#090B0E] border border-[#2D3139] text-[#64748B] hover:text-[#E2E8F0]'
+                    ? 'bg-[#F59E0B1A] border border-[#F59E0B] text-[#F59E0B]'
+                    : 'bg-[#090B0E] border border-[#2D3139] text-[#64748B] hover:text-[#E2E8F0]'
                     }`}
                 >
                   <Clock className="w-3 h-3" />
@@ -548,8 +554,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                         key={formIndex}
                         onClick={() => setActivePluralTab(formIndex)}
                         className={`px-3 py-1.5 rounded text-xs flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${isTabActive
-                            ? 'bg-[#1E293B] border-t-2 border-[#3B82F6] text-[#E2E8F0] font-semibold'
-                            : 'text-[#94A3B8] hover:bg-[#1C2128]'
+                          ? 'bg-[#1E293B] border-t-2 border-[#3B82F6] text-[#E2E8F0] font-semibold'
+                          : 'text-[#94A3B8] hover:bg-[#1C2128]'
                           }`}
                       >
                         <span className="font-mono text-[10px]">msgstr[{formIndex}]</span>
@@ -631,8 +637,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                   <div
                     key={idx}
                     className={`p-2.5 rounded text-xs flex items-center gap-2 ${issue.type === 'error'
-                        ? 'bg-rose-950/40 border border-rose-800 text-rose-300'
-                        : 'bg-amber-950/40 border border-amber-800 text-amber-300'
+                      ? 'bg-rose-950/40 border border-rose-800 text-rose-300'
+                      : 'bg-amber-950/40 border border-amber-800 text-amber-300'
                       }`}
                   >
                     <AlertCircle className="w-4 h-4 shrink-0" />

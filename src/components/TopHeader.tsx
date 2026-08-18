@@ -179,7 +179,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           <div className="flex items-center space-x-1.5 font-medium text-[#E2E8F0] pr-2">
             <span className="tracking-tight font-semibold text-xs text-white">OpenPO</span>
             <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#1C2128] text-[#38BDF8] border border-[#2D3139] font-mono">
-              v1.0
+              v1.2
             </span>
           </div>
 

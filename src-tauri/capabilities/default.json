@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["main"],
+  "windows": [
+    "main"
+  ],
   "permissions": [
     "core:default",
     "shell:default",
@@ -11,65 +13,113 @@
     {
       "identifier": "fs:allow-read",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
       "identifier": "fs:allow-write",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
       "identifier": "fs:allow-exists",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
       "identifier": "fs:allow-read-dir",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
       "identifier": "fs:allow-read-text-file",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
       "identifier": "fs:allow-write-text-file",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
       "identifier": "fs:allow-read-file",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
       "identifier": "fs:allow-write-file",
       "allow": [
-        { "path": "**" },
-        { "path": "?:/**" },
-        { "path": "?:\\**" }
+        {
+          "path": "**"
+        },
+        {
+          "path": "?:/**"
+        },
+        {
+          "path": "?:\\**"
+        }
       ]
     },
     {
@@ -78,12 +128,12 @@
         {
           "name": "git",
           "cmd": "git",
-          "args": [{ "validator": ".*" }]
+          "args": true
         },
         {
           "name": "cmd",
           "cmd": "cmd",
-          "args": [{ "validator": ".*" }]
+          "args": true
         }
       ]
     }

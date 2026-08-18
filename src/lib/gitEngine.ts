@@ -36,41 +36,42 @@ export function cloneSnapshot(pot: PotFileRecord, pos: PoFileRecord[]) {
 /**
  * Compares two lists of PoEntries to calculate diff summary
  */
+const getEntryKey = (e: PoEntry) => `${e.msgctxt || ''}\x04${e.msgid}`;
+
 export function compareEntries(
   oldEntries: PoEntry[] = [],
   newEntries: PoEntry[] = []
 ): { additions: number; deletions: number; modifications: number; isDifferent: boolean } {
-  const oldMap = new Map<string, PoEntry>(oldEntries.map((e) => [e.id, e]));
-  const newMap = new Map<string, PoEntry>(newEntries.map((e) => [e.id, e]));
+  const oldMap = new Map<string, PoEntry>(oldEntries.map((e) => [getEntryKey(e), e]));
+  const newMap = new Map<string, PoEntry>(newEntries.map((e) => [getEntryKey(e), e]));
 
   let additions = 0;
   let deletions = 0;
   let modifications = 0;
 
-  newMap.forEach((newEntry, id) => {
-    const oldEntry = oldMap.get(id);
+  newMap.forEach((newEntry, key) => {
+    const oldEntry = oldMap.get(key);
     if (!oldEntry) {
       additions++;
     } else {
       const msgstrChanged = JSON.stringify(oldEntry.msgstr) !== JSON.stringify(newEntry.msgstr);
-      const msgidChanged = oldEntry.msgid !== newEntry.msgid || oldEntry.msgidPlural !== newEntry.msgidPlural;
-      const flagsChanged = JSON.stringify(oldEntry.flags) !== JSON.stringify(newEntry.flags);
+      const msgidPluralChanged = oldEntry.msgidPlural !== newEntry.msgidPlural;
+      const flagsChanged = JSON.stringify(oldEntry.flags?.slice().sort()) !== JSON.stringify(newEntry.flags?.slice().sort());
       const commentsChanged = JSON.stringify(oldEntry.comments) !== JSON.stringify(newEntry.comments);
 
-      if (msgstrChanged || msgidChanged || flagsChanged || commentsChanged) {
+      if (msgstrChanged || msgidPluralChanged || flagsChanged || commentsChanged) {
         modifications++;
       }
     }
   });
 
-  oldMap.forEach((_, id) => {
-    if (!newMap.has(id)) {
+  oldMap.forEach((_, key) => {
+    if (!newMap.has(key)) {
       deletions++;
     }
   });
 
-  const isDifferent = additions > 0 || deletions > 0 || modifications > 0;
-  return { additions, deletions, modifications, isDifferent };
+  return { additions, deletions, modifications, isDifferent: additions > 0 || deletions > 0 || modifications > 0 };
 }
 
 /**
@@ -131,7 +132,7 @@ export function computeWorkspaceGitStatus(workspace: Workspace): GitFileStatus[]
         filename: workspace.potFile.filename,
         fileId: workspace.potFile.id,
         type: 'pot',
-        status: 'untracked',
+        status: 'unmodified',
         isStaged: false,
         entriesCount: workspace.potFile.entries.length,
       },
@@ -141,52 +142,46 @@ export function computeWorkspaceGitStatus(workspace: Workspace): GitFileStatus[]
         type: 'po' as const,
         language: po.language,
         languageName: po.languageName,
-        status: 'untracked' as const,
+        status: 'unmodified' as const,
         isStaged: false,
         entriesCount: po.entries.length,
       })),
     ];
   }
 
-  const headCommit = workspace.git.commits[0]; // Most recent commit
+  const headCommit = workspace.git.commits[0];
   const headPot = headCommit.snapshot.potFile;
   const headPos = headCommit.snapshot.poFiles;
   const staged = new Set(workspace.git.stagedFiles || []);
 
   const results: GitFileStatus[] = [];
 
-  // 1. Check POT file
   const potDiff = compareEntries(headPot?.entries || [], workspace.potFile.entries);
-  const isPotModified = potDiff.isDifferent;
-
   results.push({
     filename: workspace.potFile.filename,
     fileId: workspace.potFile.id,
     type: 'pot',
-    status: !headPot ? 'untracked' : isPotModified ? 'modified' : 'unmodified',
+    status: !headPot ? 'untracked' : potDiff.isDifferent ? ('modified' as const) : ('unmodified' as const),
     isStaged: staged.has(workspace.potFile.filename),
     entriesCount: workspace.potFile.entries.length,
     diffSummary: potDiff,
   });
 
-  // 2. Check each PO file
-  workspace.poFiles.forEach((po) => {
-    const headPo = headPos.find((p) => p.filename === po.filename || p.id === po.id);
-    const poDiff = compareEntries(headPo?.entries || [], po.entries);
-    const isModified = poDiff.isDifferent;
-    const isUntracked = !headPo;
-
-    results.push({
-      filename: po.filename,
-      fileId: po.id,
-      type: 'po',
-      language: po.language,
-      languageName: po.languageName,
-      status: isUntracked ? 'untracked' : isModified ? 'modified' : 'unmodified',
-      isStaged: staged.has(po.filename),
-      entriesCount: po.entries.length,
-      diffSummary: poDiff,
-    });
+  headPos?.forEach((headPo) => {
+    const exists = workspace.poFiles.some((p) => p.filename === headPo.filename || p.id === headPo.id);
+    if (!exists) {
+      results.push({
+        filename: headPo.filename,
+        fileId: headPo.id,
+        type: 'po',
+        language: headPo.language,
+        languageName: headPo.languageName,
+        status: 'deleted',
+        isStaged: staged.has(headPo.filename),
+        entriesCount: headPo.entries.length,
+        diffSummary: { additions: 0, deletions: headPo.entries.length, modifications: 0, isDifferent: true },
+      });
+    }
   });
 
   return results;
@@ -264,44 +259,35 @@ export function commitStagedChanges(
   author: string,
   authorEmail: string
 ): Workspace {
-  if (!workspace.git || workspace.git.stagedFiles.length === 0) {
-    return workspace;
-  }
+  if (!workspace.git || workspace.git.stagedFiles.length === 0) return workspace;
 
   const stagedSet = new Set(workspace.git.stagedFiles);
   const headCommit = workspace.git.commits[0];
   const hashes = generateCommitHash();
-
   const filesChanged: GitCommit['filesChanged'] = [];
 
-  // Determine what was committed
-  if (stagedSet.has(workspace.potFile.filename)) {
-    const headPot = headCommit?.snapshot.potFile;
-    const diff = compareEntries(headPot?.entries || [], workspace.potFile.entries);
-    filesChanged.push({
-      filename: workspace.potFile.filename,
-      fileId: workspace.potFile.id,
-      status: !headPot ? 'added' : 'modified',
-      additions: diff.additions,
-      deletions: diff.deletions,
-    });
-  }
+  const basePot = headCommit ? headCommit.snapshot.potFile : workspace.potFile;
+  const basePos = headCommit ? headCommit.snapshot.poFiles : workspace.poFiles;
+
+  const newPot = stagedSet.has(workspace.potFile.filename)
+    ? JSON.parse(JSON.stringify(workspace.potFile))
+    : JSON.parse(JSON.stringify(basePot));
+
+  const newPos = basePos.map((basePo) => {
+    if (stagedSet.has(basePo.filename)) {
+      const current = workspace.poFiles.find((p) => p.filename === basePo.filename);
+      return current ? JSON.parse(JSON.stringify(current)) : basePo;
+    }
+    return JSON.parse(JSON.stringify(basePo));
+  });
 
   workspace.poFiles.forEach((po) => {
-    if (stagedSet.has(po.filename)) {
-      const headPo = headCommit?.snapshot.poFiles.find((p) => p.filename === po.filename);
-      const diff = compareEntries(headPo?.entries || [], po.entries);
-      filesChanged.push({
-        filename: po.filename,
-        fileId: po.id,
-        status: !headPo ? 'added' : 'modified',
-        additions: diff.additions,
-        deletions: diff.deletions,
-      });
+    if (stagedSet.has(po.filename) && !newPos.some((p) => p.filename === po.filename)) {
+      newPos.push(JSON.parse(JSON.stringify(po)));
     }
   });
 
-  const newSnapshot = cloneSnapshot(workspace.potFile, workspace.poFiles);
+  const newSnapshot = { potFile: newPot, poFiles: newPos };
 
   const newCommit: GitCommit = {
     id: hashes.short,
@@ -332,15 +318,17 @@ export function revertFileToHead(workspace: Workspace, filename: string): Worksp
   if (!workspace.git || workspace.git.commits.length === 0) return workspace;
   const headCommit = workspace.git.commits[0];
 
-  if (filename === workspace.potFile.filename && headCommit.snapshot.potFile) {
-    return {
-      ...workspace,
-      potFile: JSON.parse(JSON.stringify(headCommit.snapshot.potFile)),
-      git: {
-        ...workspace.git,
-        stagedFiles: workspace.git.stagedFiles.filter((f) => f !== filename),
-      },
-    };
+  if (filename === workspace.potFile.filename) {
+    if (headCommit.snapshot.potFile) {
+      return {
+        ...workspace,
+        potFile: JSON.parse(JSON.stringify(headCommit.snapshot.potFile)),
+        git: {
+          ...workspace.git,
+          stagedFiles: (workspace.git.stagedFiles || []).filter((f) => f !== filename),
+        },
+      };
+    }
   }
 
   const headPo = headCommit.snapshot.poFiles.find((p) => p.filename === filename);
@@ -353,12 +341,21 @@ export function revertFileToHead(workspace: Workspace, filename: string): Worksp
       poFiles: updatedPoFiles,
       git: {
         ...workspace.git,
-        stagedFiles: workspace.git.stagedFiles.filter((f) => f !== filename),
+        stagedFiles: (workspace.git.stagedFiles || []).filter((f) => f !== filename),
+      },
+    };
+  } else {
+    const updatedPoFiles = workspace.poFiles.filter((p) => p.filename !== filename);
+    return {
+      ...workspace,
+      poFiles: updatedPoFiles,
+      activeFileId: workspace.activeFileId === filename ? (updatedPoFiles[0]?.id || 'pot') : workspace.activeFileId,
+      git: {
+        ...workspace.git,
+        stagedFiles: (workspace.git.stagedFiles || []).filter((f) => f !== filename),
       },
     };
   }
-
-  return workspace;
 }
 
 /**
@@ -461,3 +458,4 @@ export function getDetailedEntryDiffs(
 
   return diffs;
 }
+

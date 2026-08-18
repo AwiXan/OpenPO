@@ -406,12 +406,12 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead className="sticky top-0 bg-[#16191E] border-b border-[#2D3139] text-[10px] font-bold text-[#64748B] uppercase tracking-wider z-20 shadow-sm">
             <tr>
-              {/* Заголовок шаблона POT */}
+              {/* Header POT */}
               <th className="matrix-col-pot p-3 w-80 border-r border-[#2D3139] bg-[#16191E] transition-colors duration-700">
                 {t('matrix.sourceCol')} ({workspace.potFile.filename})
               </th>
               
-              {/* Заголовки языков PO */}
+              {/* Header PO */}
               {poFiles.map((po) => (
                 <th
                   key={po.id}

@@ -22,7 +22,6 @@ export const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
-  // Горизонтальный скролл колесиком мыши (как в VS Code)
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -37,7 +36,7 @@ export const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
-  // Глобальный слушатель для отпускания мыши (сбрасывает drag)
+
   useEffect(() => {
     const handlePointerUp = () => {
       if (draggingId) {
@@ -49,20 +48,19 @@ export const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
     return () => window.removeEventListener('pointerup', handlePointerUp);
   }, [draggingId]);
 
-  // Начало перетаскивания
   const handlePointerDown = (id: string, e: React.PointerEvent) => {
-    // Реагируем только на левую кнопку мыши
+
     if (e.button !== 0) return;
     
-    // Блокируем drag, если кликнули по кнопке закрытия
+
     if ((e.target as HTMLElement).closest('button')) return;
 
     setDraggingId(id);
     document.body.style.cursor = 'grabbing';
-    onSelectWorkspace(id); // Сразу делаем таб активным для красоты
+    onSelectWorkspace(id);
   };
 
-  // Моментальная смена мест при наведении
+
   const handlePointerEnter = (targetId: string) => {
     if (!draggingId || draggingId === targetId) return;
 

@@ -126,13 +126,14 @@ export interface GitFileStatus {
   type: 'pot' | 'po';
   language?: string;
   languageName?: string;
-  status: 'unmodified' | 'modified' | 'untracked';
+  status: 'unmodified' | 'modified' | 'untracked' | 'deleted' | 'added';
   isStaged: boolean;
   entriesCount: number;
   diffSummary?: {
     additions: number;
     deletions: number;
     modifications: number;
+    isDifferent: boolean;
   };
 }
 

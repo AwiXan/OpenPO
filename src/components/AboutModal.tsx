@@ -47,7 +47,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-black text-white tracking-tight">OpenPO</h2>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-[#3B82F622] text-[#38BDF8] border border-[#3B82F644] font-mono font-bold">
-                  v1.0
+                  v1.2
                 </span>
               </div>
               <p className="text-xs text-[#94A3B8] mt-0.5">
@@ -161,7 +161,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             <div className="flex items-center gap-1.5">
               <span>{t('about.engineName', 'OpenPO Localization Engine')}</span>
               <span>•</span>
-              <span className="font-mono text-[#94A3B8]">v1.0.0</span>
+              <span className="font-mono text-[#94A3B8]">v1.2</span>
             </div>
             <div className="flex items-center gap-1 text-[#38BDF8]">
               <Heart className="w-3 h-3 fill-current text-rose-400" />

@@ -6,14 +6,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Workspace, FilterStatus, LintIssue, AppSettings, PoFileRecord } from './types/gettext';
 import { INITIAL_SAMPLE_WORKSPACES } from './lib/sampleWorkspaces';
-import { serializePoFile } from './lib/poParser';
+import { serializePoFile, parsePoContent } from './lib/poParser';
 import { compileMoBinary } from './lib/moCompiler';
 import { getPluralRuleForLanguage } from './lib/pluralEngine';
 import { lintEntry } from './lib/linter';
 import { buildCategoryTree } from './lib/categorizer';
 import { useTranslation } from './lib/i18n';
 import { globalTranslationMemory } from './lib/translationMemory';
-import { computeWorkspaceGitStatus } from './lib/gitEngine';
+import { computeWorkspaceGitStatus, revertFileToHead } from './lib/gitEngine';
+import { getFileContentFromHead } from './lib/systemGit';
 
 // Custom Hooks
 import { useFileSystemSync } from './hooks/useFileSystemSync';
@@ -37,6 +38,7 @@ import { BatchOperationsModal } from './components/BatchOperationsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { GitModal } from './components/GitModal';
 import { AboutModal } from './components/AboutModal';
+
 
 const DEFAULT_SETTINGS: AppSettings = {
   fuzzyMatchingThreshold: 80,
@@ -91,7 +93,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
-  
+
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'info' | 'success' | 'warning' } | null>(null);
   const { t } = useTranslation();
 
@@ -247,13 +249,76 @@ export default function App() {
 
   const activeEntryId = currentWorkspace.activeEntryId || filteredEntries[0]?.id || null;
   const currentEntry = useMemo(() => activeEntries.find((e) => e.id === activeEntryId) || null, [activeEntries, activeEntryId]);
-  
+
   const tmSuggestions = useMemo(() => {
     if (!currentEntry || isPotActive || !currentPoFile) return [];
     return globalTranslationMemory.query(currentEntry.msgid, currentPoFile.language, (settings.fuzzyMatchingThreshold || 80) / 100);
   }, [currentEntry, isPotActive, currentPoFile, settings.fuzzyMatchingThreshold]);
 
-  const gitModifiedCount = useMemo(() => computeWorkspaceGitStatus(currentWorkspace).filter((s) => s.isStaged || s.status !== 'unmodified').length, [currentWorkspace]);
+  const gitModifiedCount = useMemo(() => {
+    return computeWorkspaceGitStatus(currentWorkspace).filter(
+      (s) => s.isStaged || s.status === 'modified' || s.status === 'untracked' || s.status === 'deleted'
+    ).length;
+  }, [currentWorkspace]);
+
+  const handleRevertFile = useCallback(async (filename: string) => {
+  const folderPath = currentWorkspace.localDirPath || localDirState.dirName;
+  if (!folderPath) {
+    showToast(t('git.folderNotConnected'), 'warning');
+    return;
+  }
+
+  try {
+    const content = await getFileContentFromHead(folderPath, filename);
+    
+    const parsed = parsePoContent(content);
+
+    setWorkspaces((prev) =>
+      prev.map((w) => {
+        if (w.id !== activeWorkspaceId) return w;
+        if (filename.endsWith('.pot') || filename === w.potFile.filename) {
+          return {
+            ...w,
+            potFile: {
+              ...w.potFile,
+              header: parsed.header,
+              entries: parsed.entries,
+              isModified: false,
+            },
+            isModified: true,
+          };
+        }
+
+        const updatedPoFiles = w.poFiles.map((po) => {
+          if (po.filename === filename || filename.endsWith(po.filename)) {
+            return {
+              ...po,
+              header: parsed.header,
+              entries: parsed.entries,
+              isModified: false,
+            };
+          }
+          return po;
+        });
+
+        return {
+          ...w,
+          poFiles: updatedPoFiles,
+        };
+      })
+    );
+
+    globalTranslationMemory.indexWorkspaces(workspaces);
+
+    const successMsg = (t('git.revertSuccess') || 'File "{filename}" successfully reverted to HEAD')
+      .replace('{filename}', filename);
+    showToast(successMsg, 'success');
+  } catch (err: any) {
+    const errMsg = (t('git.revertEditorFailed') || 'Failed to update editor: {error}')
+      .replace('{error}', err?.message || String(err));
+    showToast(errMsg, 'warning');
+  }
+}, [activeWorkspaceId, currentWorkspace.localDirPath, localDirState.dirName, workspaces, showToast]);
 
   const activePotEntryId = useMemo(() => {
     if (isPotActive) return activeEntryId;
@@ -275,16 +340,41 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.ctrlKey || e.metaKey;
-      if (isCmdOrCtrl && e.key.toLowerCase() === 's') { e.preventDefault(); handleSyncLocalFolder(); }
-      else if (isCmdOrCtrl && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); handleUndo(); }
-      else if ((isCmdOrCtrl && e.key.toLowerCase() === 'y') || (isCmdOrCtrl && e.shiftKey && e.key.toLowerCase() === 'z')) { e.preventDefault(); handleRedo(); }
-      else if (isCmdOrCtrl && e.key === 'Enter') { e.preventDefault(); handleNextEntry(); }
-      else if (isCmdOrCtrl && e.key === 'ArrowDown') { e.preventDefault(); handleNextEntry(); }
-      else if (isCmdOrCtrl && e.key === 'ArrowUp') { e.preventDefault(); handlePrevEntry(); }
+      if (!isCmdOrCtrl) return;
+
+      if (e.code === 'KeyS') {
+        e.preventDefault();
+        if (currentWorkspace?.localDirPath || currentWorkspace?.localDirHandle) {
+          handleSyncLocalFolder();
+        } else {
+          showToast('No local folder connected to this workspace for disk sync.', 'warning');
+        }
+      }
+      else if (e.code === 'KeyZ' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      else if (e.code === 'KeyY' || (e.shiftKey && e.code === 'KeyZ')) {
+        e.preventDefault();
+        handleRedo();
+      }
+      else if (e.code === 'Enter') {
+        e.preventDefault();
+        handleNextEntry();
+      }
+      else if (e.code === 'ArrowDown') {
+        e.preventDefault();
+        handleNextEntry();
+      }
+      else if (e.code === 'ArrowUp') {
+        e.preventDefault();
+        handlePrevEntry();
+      }
     };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNextEntry, handlePrevEntry, handleUndo, handleRedo, handleSyncLocalFolder]);
+  }, [handleNextEntry, handlePrevEntry, handleUndo, handleRedo, handleSyncLocalFolder, currentWorkspace, showToast]);
 
   return (
     <div
@@ -471,7 +561,14 @@ export default function App() {
       <MoCompilerModal isOpen={isMoCompilerModalOpen} onClose={() => setIsMoCompilerModalOpen(false)} workspace={currentWorkspace} />
       <BatchOperationsModal isOpen={isBatchModalOpen} onClose={() => setIsBatchModalOpen(false)} workspace={currentWorkspace} onBatchApplyTm={handleBatchApplyTm} onClearAllFuzzy={handleClearAllFuzzy} onMarkUntranslatedFuzzy={handleMarkUntranslatedFuzzy} fuzzyThreshold={settings.fuzzyMatchingThreshold} />
       <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} settings={settings} onSaveSettings={setSettings} domainName={currentWorkspace.domainName || currentWorkspace.potFile.domainName || 'messages'} onRenameDomain={handleRenameDomain} />
-      <GitModal isOpen={isGitModalOpen} onClose={() => setIsGitModalOpen(false)} folderPath={localDirState.isConnected ? localDirState.dirName : null} authorName={settings.authorName} authorEmail={settings.authorEmail} />
+      <GitModal
+        isOpen={isGitModalOpen}
+        onClose={() => setIsGitModalOpen(false)}
+        folderPath={localDirState.isConnected ? (currentWorkspace.localDirPath || localDirState.dirName) : null}
+        authorName={settings.authorName}
+        authorEmail={settings.authorEmail}
+        onRevertFile={handleRevertFile}
+      />
       <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} onOpenSettings={() => { setIsAboutModalOpen(false); setIsSettingsModalOpen(true); }} />
 
       <input ref={folderInputRef} type="file" multiple onChange={handleFolderInputChange} className="hidden" />
