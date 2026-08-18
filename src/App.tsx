@@ -45,6 +45,8 @@ import {
   computeWorkspaceGitStatus,
 } from './lib/gitEngine';
 
+import { confirm } from '@tauri-apps/plugin-dialog';
+
 import { TopHeader } from './components/TopHeader';
 import { WorkspaceTabs } from './components/WorkspaceTabs';
 import { LanguageSelectorBar } from './components/LanguageSelectorBar';
@@ -482,7 +484,11 @@ export default function App() {
         return [dirPath, ...filtered].slice(0, 10);
       });
 
-      showToast(`Loaded workspace from: ${dirPath}`, 'success');
+      const message = t('toast.loaded')
+        .replace('${dirPath}', dirPath.toString());
+
+      showToast(message, 'success');
+
       return true;
     } catch (err: any) {
       console.error('Failed to load native directory:', err);
@@ -821,7 +827,28 @@ export default function App() {
   // Select file in workspace
   const handleSelectFile = (fileId: string) => {
     setWorkspaces((prev) =>
-      prev.map((w) => (w.id === activeWorkspaceId ? { ...w, activeFileId: fileId } : w))
+      prev.map((w) => {
+        if (w.id !== activeWorkspaceId) return w;
+
+        let nextEntryId = w.activeEntryId;
+
+        const currentFile = w.activeFileId === 'pot' ? w.potFile : w.poFiles.find((p) => p.id === w.activeFileId);
+        const nextFile = fileId === 'pot' ? w.potFile : w.poFiles.find((p) => p.id === fileId);
+
+        if (currentFile && nextFile && w.activeEntryId) {
+          const currentEntry = currentFile.entries.find((e) => e.id === w.activeEntryId);
+          if (currentEntry) {
+            const equivalentEntry = nextFile.entries.find(
+              (e) => e.msgid === currentEntry.msgid && (e.msgctxt || '') === (currentEntry.msgctxt || '')
+            );
+            if (equivalentEntry) {
+              nextEntryId = equivalentEntry.id;
+            }
+          }
+        }
+
+        return { ...w, activeFileId: fileId, activeEntryId: nextEntryId };
+      })
     );
   };
 
@@ -1055,7 +1082,7 @@ export default function App() {
             mimeVersion: '1.0',
             contentType: 'text/plain; charset=UTF-8',
             contentTransferEncoding: '8bit',
-            xGenerator: 'OpenPO',
+            xGenerator: 'PoCraft Gettext Studio',
             rawHeaders: {},
           };
 
@@ -1077,23 +1104,52 @@ export default function App() {
             isModified: true,
           };
 
+          let nextEntryId = w.activeEntryId;
+          const currentFile = w.activeFileId === 'pot' ? w.potFile : w.poFiles.find((p) => p.id === w.activeFileId);
+          if (currentFile && w.activeEntryId) {
+            const currentEntry = currentFile.entries.find((e) => e.id === w.activeEntryId);
+            if (currentEntry) {
+              const equivalentEntry = poEntries.find(
+                (e) => e.msgid === currentEntry.msgid && (e.msgctxt || '') === (currentEntry.msgctxt || '')
+              );
+              if (equivalentEntry) {
+                nextEntryId = equivalentEntry.id;
+              }
+            }
+          }
 
           return {
             ...w,
             poFiles: [...w.poFiles, newPoRecord],
             activeFileId: newPoRecord.id,
+            activeEntryId: nextEntryId,
             isModified: true,
           };
         })
       );
     },
-    [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, settings.poNamingScheme, triggerDiskSyncForPo]
+    [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, settings.poNamingScheme]
   );
 
   // Remove language from workspace
   const handleDeleteLanguage = useCallback(
-    (poFileId: string, e: React.MouseEvent) => {
+    async (poFileId: string, e: React.MouseEvent) => {
       e.stopPropagation();
+
+      const poFile = currentWorkspace.poFiles.find((p) => p.id === poFileId);
+      if (!poFile) return;
+
+      const confirmMsg = t('language.confirmDelete').replace('${lang}', poFile.languageName);
+
+      const isConfirmed = await confirm(confirmMsg, {
+        title: 'language.deleting',
+        kind: 'warning'
+      });
+
+      if (!isConfirmed) {
+        return;
+      }
+
       pushHistorySnapshot(currentWorkspace);
 
       setWorkspaces((prev) =>
@@ -1104,8 +1160,11 @@ export default function App() {
           return { ...w, poFiles, activeFileId: nextActive, isModified: true };
         })
       );
+
+      const toastMsg = t('language.deleted').replace('${lang}', poFile.languageName);
+      showToast(toastMsg, 'info');
     },
-    [activeWorkspaceId, currentWorkspace, pushHistorySnapshot]
+    [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, t, showToast]
   );
 
   // Toggle Fuzzy
@@ -1604,6 +1663,17 @@ export default function App() {
     );
   };
 
+  const activePotEntryId = useMemo(() => {
+    if (isPotActive) return activeEntryId;
+    if (!currentEntry) return null;
+
+    const potMatch = currentWorkspace.potFile.entries.find(
+      (e) => e.msgid === currentEntry.msgid && (e.msgctxt || '') === (currentEntry.msgctxt || '')
+    );
+
+    return potMatch ? potMatch.id : activeEntryId;
+  }, [isPotActive, activeEntryId, currentEntry, currentWorkspace.potFile.entries]);
+
   return (
     <div
       className="flex flex-col bg-[#090B0E] text-[#E2E8F0] font-sans antialiased overflow-hidden origin-top-left"
@@ -1682,6 +1752,27 @@ export default function App() {
           workspace={currentWorkspace}
           onUpdateTranslation={handleMatrixUpdateTranslation}
           showNewlinesVisible={settings.showNewlinesVisible}
+
+          activeEntryId={activePotEntryId}
+
+          onNavigateToEditor={(potEntryId) => {
+            let targetId = potEntryId;
+
+            if (!isPotActive && currentPoFile) {
+              const potEntry = currentWorkspace.potFile.entries.find((e) => e.id === potEntryId);
+              if (potEntry) {
+                const poMatch = currentPoFile.entries.find(
+                  (e) => e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || '')
+                );
+                if (poMatch) {
+                  targetId = poMatch.id;
+                }
+              }
+            }
+
+            handleSelectEntry(targetId);
+            setViewMode('editor');
+          }}
         />
       ) : (
         <main className="flex-1 flex overflow-hidden relative">
@@ -1768,6 +1859,7 @@ export default function App() {
               autoMarkFuzzyUnder100={settings.autoMarkFuzzyUnder100}
               onUpdateCategory={handleUpdateCategory}
               availableCategories={categoryData.allGroups.map((g) => g.name)}
+              onNavigateToMatrix={() => setViewMode('matrix')}
             />
           </div>
         </main>
@@ -1794,7 +1886,7 @@ export default function App() {
           {localDirState.isConnected && (
             <>
               <span className="text-[#21262D]">|</span>
-              <span className="text-[#7EE787] truncate max-w-[200px]" title={localDirState.dirName}>
+              <span className="text-[#7EE787] truncate max-w-[300px]" title={localDirState.dirName}>
                 Disk: {localDirState.dirName} {settings.autoCompileMoOnSave ? '(auto .mo)' : ''}
               </span>
             </>

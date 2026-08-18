@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Workspace, PoEntry } from '../types/gettext';
 import { useTranslation } from '../lib/i18n';
 import {
@@ -13,6 +13,7 @@ import {
   ChevronsDown,
   ChevronsUp,
   Folder,
+  Edit3,
 } from 'lucide-react';
 import { deriveCategoryPath } from '../lib/categorizer';
 
@@ -20,12 +21,16 @@ interface MultiLanguageGridViewProps {
   workspace: Workspace;
   onUpdateTranslation: (poFileId: string, entryId: string, msgstr: string[]) => void;
   showNewlinesVisible?: boolean;
+  activeEntryId: string | null;
+  onNavigateToEditor: (entryId: string) => void;
 }
 
 export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
   workspace,
   onUpdateTranslation,
   showNewlinesVisible: initialShowNewlines = true,
+  activeEntryId,
+  onNavigateToEditor,
 }) => {
   const { t } = useTranslation();
   const potEntries = workspace.potFile.entries;
@@ -75,6 +80,53 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
       return a.localeCompare(b);
     });
   }, [potEntries]);
+  
+  useEffect(() => {
+    if (activeEntryId) {
+      if (groupByCategory) {
+        const entry = potEntries.find((e) => e.id === activeEntryId);
+        if (entry) {
+          const catPath = deriveCategoryPath(entry);
+          const catName = catPath.join(' / ') || 'General';
+          if (collapsedCategories.has(catName)) {
+            setCollapsedCategories((prev) => {
+              const next = new Set(prev);
+              next.delete(catName);
+              return next;
+            });
+          }
+        }
+      }
+
+      setTimeout(() => {
+        const row = document.getElementById(`matrix-row-${activeEntryId}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        if (workspace.activeFileId) {
+          const targetColClass = workspace.activeFileId === 'pot' ? 'matrix-col-pot' : `matrix-col-${workspace.activeFileId}`;
+          const colCells = document.querySelectorAll(`.${targetColClass}`);
+          
+          colCells.forEach((cell) => {
+            cell.classList.add('!bg-[#3B82F620]'); 
+            setTimeout(() => {
+              cell.classList.remove('!bg-[#3B82F620]');
+            }, 2000);
+          });
+
+          const activeCell = document.getElementById(`matrix-cell-${activeEntryId}-${workspace.activeFileId}`);
+          if (activeCell) {
+            activeCell.classList.add('!bg-[#3B82F640]');
+            setTimeout(() => {
+              activeCell.classList.remove('!bg-[#3B82F640]');
+            }, 1000);
+          }
+        }
+      }, 150);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const toggleCategory = (catName: string) => {
     setCollapsedCategories((prev) => {
@@ -87,6 +139,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
       return next;
     });
   };
+
 
   const expandAllCategories = () => {
     setCollapsedCategories(new Set());
@@ -114,39 +167,6 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
     }, 50);
   };
 
-  // Cursor-aware insertion of \n
-  const handleInsertNewlineInGrid = (
-    poId: string,
-    potEntryId: string,
-    currentArr: string[],
-    idx: number
-  ) => {
-    const key = `${poId}_${potEntryId}_${idx}`;
-    const textarea = textareaRefs.current.get(key);
-    const currentVal = currentArr[idx] || '';
-
-    if (textarea) {
-      const start = textarea.selectionStart ?? currentVal.length;
-      const end = textarea.selectionEnd ?? currentVal.length;
-      const newVal = currentVal.substring(0, start) + '\\n' + currentVal.substring(end);
-
-      const updated = [...currentArr];
-      updated[idx] = newVal;
-      onUpdateTranslation(poId, potEntryId, updated);
-
-      setTimeout(() => {
-        const el = textareaRefs.current.get(key);
-        if (el) {
-          el.focus();
-          el.setSelectionRange(start + 2, start + 2);
-        }
-      }, 0);
-    } else {
-      const updated = [...currentArr];
-      updated[idx] = currentVal + '\\n';
-      onUpdateTranslation(poId, potEntryId, updated);
-    }
-  };
 
   const renderEntryRow = (potEntry: PoEntry) => {
     const hasNewlines = potEntry.msgid.includes('\\n') || potEntry.msgid.includes('\n');
@@ -154,11 +174,15 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
 
     return (
       <tr
+        id={`matrix-row-${potEntry.id}`}
         key={potEntry.id}
-        className="border-b border-[#16191E] hover:bg-[#1E293B20] transition-colors"
+        className="border-b border-[#16191E] hover:bg-[#5070a320] transition-colors duration-500"
       >
         {/* Source Column */}
-        <td className="p-3 border-r border-[#2D3139] bg-[#090B0E] align-top w-80">
+        <td 
+          id={`matrix-cell-${potEntry.id}-pot`}
+          className="matrix-col-pot p-3 border-r border-[#2D3139] bg-[#090B0E] align-top w-80 transition-colors duration-700"
+        >
           <div className="flex items-start justify-between gap-1 mb-1">
             <div className="font-semibold text-[#E2E8F0] select-text break-words whitespace-pre-wrap leading-relaxed">
               {potEntry.msgid}
@@ -189,12 +213,16 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           const poEntry = po.entries.find(
             (e) => e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || '')
           ) || po.entries.find((e) => e.id === potEntry.id);
-          
+
           const currentMsgstr = poEntry?.msgstr || [''];
           const isFuzzy = poEntry?.flags.includes('fuzzy');
 
           return (
-            <td key={po.id} className="p-2.5 border-r border-[#2D3139] align-top bg-[#090B0E]">
+            <td 
+              key={po.id} 
+              id={`matrix-cell-${potEntry.id}-${po.id}`}
+              className={`matrix-col-${po.id} p-2.5 border-r border-[#2D3139] align-top bg-[#090B0E] transition-colors duration-700`}
+            >
               <div className="space-y-1.5">
                 {currentMsgstr.map((strVal, idx) => {
                   const refKey = `${po.id}_${potEntry.id}_${idx}`;
@@ -226,9 +254,8 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
                               }
                             }}
                             placeholder={`${t('matrix.translatePlaceholder')} (${po.language})...`}
-                            className={`w-full bg-[#16191E] border rounded px-2.5 py-1.5 text-xs font-mono text-[#E2E8F0] placeholder-[#64748B] focus:border-[#3B82F6] outline-none resize-y min-h-[44px] leading-relaxed transition-colors ${
-                              isFuzzy ? 'border-[#F59E0B]' : 'border-[#2D3139]'
-                            }`}
+                            className={`w-full bg-[#16191E] border rounded px-2.5 py-1.5 text-xs font-mono text-[#E2E8F0] placeholder-[#64748B] focus:border-[#3B82F6] outline-none resize-y min-h-[44px] leading-relaxed transition-colors ${isFuzzy ? 'border-[#F59E0B]' : 'border-[#2D3139]'
+                              }`}
                           />
 
                           {showWhitespaceMarks && valNewlineCount > 0 && (
@@ -241,15 +268,13 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
                           )}
                         </div>
 
-                        {/* Quick Insert \n Button with cursor restore */}
+                        {/* To Editor */}
                         <button
-                          onClick={() =>
-                            handleInsertNewlineInGrid(po.id, potEntry.id, currentMsgstr, idx)
-                          }
+                          onClick={() => onNavigateToEditor(potEntry.id)}
                           className="p-1 rounded bg-[#16191E] hover:bg-[#1E293B] text-[#64748B] hover:text-[#38BDF8] border border-[#2D3139] transition-colors cursor-pointer shrink-0 mt-0.5"
-                          title="Insert \n newline at cursor"
+                          title={t('matrix.toEditor')}
                         >
-                          <CornerDownLeft className="w-3.5 h-3.5 text-[#38BDF8]" />
+                          <Edit3 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -283,11 +308,10 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           {/* Categorize Preference Toggle */}
           <button
             onClick={() => setGroupByCategory(!groupByCategory)}
-            className={`px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 border transition-all cursor-pointer ${
-              groupByCategory
+            className={`px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 border transition-all cursor-pointer ${groupByCategory
                 ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6] font-medium shadow-xs'
                 : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
-            }`}
+              }`}
             title="Group strings by category in the matrix"
           >
             <FolderTree className="w-3.5 h-3.5 text-[#38BDF8]" />
@@ -348,11 +372,10 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           {/* Toggle whitespace badges */}
           <button
             onClick={() => setShowWhitespaceMarks(!showWhitespaceMarks)}
-            className={`px-2.5 py-1.5 rounded text-xs border transition-all flex items-center gap-1.5 cursor-pointer ${
-              showWhitespaceMarks
+            className={`px-2.5 py-1.5 rounded text-xs border transition-all flex items-center gap-1.5 cursor-pointer ${showWhitespaceMarks
                 ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6] font-medium shadow-xs'
                 : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
-            }`}
+              }`}
             title="Toggle visible \n newline markers"
           >
             {showWhitespaceMarks ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -362,11 +385,10 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           {/* Expand all rows toggle */}
           <button
             onClick={() => setExpandAllRows(!expandAllRows)}
-            className={`px-2.5 py-1.5 rounded text-xs border transition-all flex items-center gap-1.5 cursor-pointer ${
-              expandAllRows
+            className={`px-2.5 py-1.5 rounded text-xs border transition-all flex items-center gap-1.5 cursor-pointer ${expandAllRows
                 ? 'bg-[#1E293B] text-[#4ADE80] border-[#4ADE80] font-medium shadow-xs'
                 : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
-            }`}
+              }`}
             title="Toggle expanded multiline rows"
           >
             {expandAllRows ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -384,13 +406,16 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
         <table className="w-full text-left border-collapse min-w-[800px]">
           <thead className="sticky top-0 bg-[#16191E] border-b border-[#2D3139] text-[10px] font-bold text-[#64748B] uppercase tracking-wider z-20 shadow-sm">
             <tr>
-              <th className="p-3 w-80 border-r border-[#2D3139] bg-[#16191E]">
+              {/* Заголовок шаблона POT */}
+              <th className="matrix-col-pot p-3 w-80 border-r border-[#2D3139] bg-[#16191E] transition-colors duration-700">
                 {t('matrix.sourceCol')} ({workspace.potFile.filename})
               </th>
+              
+              {/* Заголовки языков PO */}
               {poFiles.map((po) => (
                 <th
                   key={po.id}
-                  className="p-3 min-w-[280px] border-r border-[#2D3139] bg-[#16191E]"
+                  className={`matrix-col-${po.id} p-3 min-w-[280px] border-r border-[#2D3139] bg-[#16191E] transition-colors duration-700`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
@@ -417,7 +442,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
                     <tr
                       ref={(el) => setCategoryRowRef(catName, el)}
                       onClick={() => toggleCategory(catName)}
-                      className="bg-[#12151B] border-y border-[#2D3139] hover:bg-[#1A1F26] cursor-pointer transition-colors sticky top-[41px] z-10 select-none"
+                      className="bg-[#12151B] border-y border-[#2D3139] hover:bg-[#1A1F26] cursor-pointer transition-colors sticky top-[38px] z-10 select-none"
                     >
                       <td colSpan={totalColSpan} className="px-4 py-2">
                         <div className="flex items-center justify-between">

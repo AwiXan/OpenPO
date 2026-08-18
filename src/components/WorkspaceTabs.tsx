@@ -37,7 +37,7 @@ export const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
             >
               <span className={isActive ? 'text-[#3B82F6] font-bold' : 'text-[#64748B]'}>◇</span>
               
-              {/* Заменили workspace на ws */}
+              {/* ws */}
               <span className="truncate max-w-[150px] font-mono text-[11px]">{ws.name}</span>
               {ws.isModified && <span className="text-[#38BDF8] ml-1">*</span>}
               

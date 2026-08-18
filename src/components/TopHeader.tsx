@@ -719,17 +719,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               </span>
             )}
           </button>
-
-          {/* TM Threshold Badge */}
-          <button
-            id="btn-tm-settings-badge"
-            onClick={onOpenSettingsModal}
-            className="flex items-center gap-1 text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B1A] border border-[#F59E0B33] px-2 py-0.5 rounded cursor-pointer hover:bg-[#F59E0B33] transition-colors"
-            title="Translation Memory Fuzzy Threshold - Click to configure"
-          >
-            <Sparkles className="w-2.5 h-2.5" />
-            <span>TM ≥{fuzzyThreshold}%</span>
-          </button>
         </div>
       </div>
 
@@ -850,21 +839,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               >
                 <Binary className="w-3.5 h-3.5 text-[#38BDF8]" />
                 <span>{t('header.compileMo')}</span>
-              </button>
-
-              <button
-                id="btn-view-git"
-                onClick={onOpenGitModal}
-                className="px-2.5 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] text-xs flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
-                title="Open Git Source Control & Commit History"
-              >
-                <GitBranch className="w-3.5 h-3.5 text-[#38BDF8]" />
-                <span>{t('header.git')}</span>
-                {gitModifiedCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded bg-[#3B82F6] text-white text-[10px] font-bold font-mono">
-                    {gitModifiedCount}
-                  </span>
-                )}
               </button>
 
               <button

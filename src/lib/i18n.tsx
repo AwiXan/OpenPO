@@ -328,7 +328,15 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.none': 'none',
     'git.files': 'files',
 
-    'toast.synced': 'Synced ${savedPo} .po files and compiled ${savedMo} .mo binaries directly to disk!'
+    'toast.synced': 'Synced ${savedPo} .po files and compiled ${savedMo} .mo binaries directly to disk!',
+    'toast.loaded': 'Loaded workspace from: ${dirPath}',
+
+    'matrix.toEditor': 'Edit in standard editor',
+    'editor.toMatrix': 'View in Matrix',
+
+    'language.confirmDelete': 'Are you sure you want to delete the "${lang}" language? All translations in this file will be permanently lost!',
+    'language.deleting': 'Deleting language',
+    'language.deleted': 'Language "${lang}" has been successfully removed from the project.',
   },
   ru: {
     // Menu Bar
@@ -639,6 +647,14 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'файлов',
 
     'toast.synced': 'Синхронизировано .po файлов: ${savedPo}, скомпилировано .mo бинарников: ${savedMo} прямо на диск!',
+    'toast.loaded': 'Рабочая область загружена из: ${dirPath}',
+    
+    'matrix.toEditor': 'Перейти к переводу в редакторе',
+    'editor.toMatrix': 'К матрице',
+    
+    'language.confirmDelete': 'Вы уверены, что хотите удалить язык «${lang}»? Все переводы в этом файле будут безвозвратно потеряны!',
+    'language.deleting': 'Удаление языка',
+    'language.deleted': 'Язык «${lang}» успешно удален из проекта.',
   },
   es: {
     // Menu Bar
@@ -946,7 +962,15 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.none': 'ninguno',
     'git.files': 'archivos',
 
-    'toast.synced': '¡Sincronizados ${savedPo} archivos .po y compilados ${savedMo} binarios .mo directamente en el disco!'
+    'toast.synced': '¡Sincronizados ${savedPo} archivos .po y compilados ${savedMo} binarios .mo directamente en el disco!',
+    'toast.loaded': 'Espacio de trabajo cargado desde: ${dirPath}',
+    
+    'matrix.toEditor': 'Editar en el editor estándar',
+    'editor.toMatrix': 'Ver en la Matriz',
+    
+    'language.confirmDelete': '¿Estás seguro de que deseas eliminar el idioma "${lang}"? ¡Todas las traducciones en este archivo se perderán permanentemente!',
+    'language.deleting': 'Eliminando idioma',
+    'language.deleted': 'El idioma "${lang}" se ha eliminado correctamente del proyecto.',
   },
   fr: {
     // Menu Bar
@@ -1254,7 +1278,15 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.none': 'aucun',
     'git.files': 'fichiers',
 
-    'toast.synced': '${savedPo} fichiers .po synchronisés et ${savedMo} binaires .mo compilés directement sur le disque !'
+    'toast.synced': '${savedPo} fichiers .po synchronisés et ${savedMo} binaires .mo compilés directement sur le disque !',
+    'toast.loaded': 'Espace de travail chargé depuis : ${dirPath}',
+    
+    'matrix.toEditor': 'Éditer dans l\'éditeur standard',
+    'editor.toMatrix': 'Voir dans la Matrice',
+    
+    'language.confirmDelete': 'Êtes-vous sûr de vouloir supprimer la langue "${lang}" ? Toutes les traductions de ce fichier seront définitivement perdues !',
+    'language.deleting': 'Suppression de la langue',
+    'language.deleted': 'La langue "${lang}" a été retirée du projet avec succès.',
   },
   de: {
     // Menu Bar
@@ -1563,6 +1595,14 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'Dateien',
 
     'toast.synced': '${savedPo} .po-Dateien synchronisiert und ${savedMo} .mo-Binärdateien direkt auf die Festplatte kompiliert!',
+    'toast.loaded': 'Arbeitsbereich geladen aus: ${dirPath}',
+    
+    'matrix.toEditor': 'Im Standard-Editor bearbeiten',
+    'editor.toMatrix': 'In der Matrix anzeigen',
+    
+    'language.confirmDelete': 'Möchtest du die Sprache "${lang}" wirklich löschen? Alle Übersetzungen in dieser Datei gehen unwiderruflich verloren!',
+    'language.deleting': 'Sprache wird gelöscht',
+    'language.deleted': 'Die Sprache "${lang}" wurde erfolgreich aus dem Projekt entfernt.',
   },
   zh: {
     // Menu Bar
@@ -1870,7 +1910,15 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.none': '无',
     'git.files': '个文件',
 
-    'toast.synced': '已同步 ${savedPo} 个 .po 文件，并将 ${savedMo} 个 .mo 二进制文件直接编译到磁盘！'
+    'toast.synced': '已同步 ${savedPo} 个 .po 文件，并将 ${savedMo} 个 .mo 二进制文件直接编译到磁盘！',
+    'toast.loaded': '已从以下路径加载工作区：${dirPath}',
+    
+    'matrix.toEditor': '在标准编辑器中编辑',
+    'editor.toMatrix': '在矩阵中查看',
+    
+    'language.confirmDelete': '您确定要删除“${lang}”语言吗？此文件中的所有翻译将永久丢失！',
+    'language.deleting': '正在删除语言',
+    'language.deleted': '语言“${lang}”已成功从项目中移除。',
   },
   ja: {
     // Menu Bar
@@ -2179,6 +2227,14 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'ファイル',
 
     'toast.synced': '${savedPo}個の.poファイルを同期し、${savedMo}個の.moバイナリをディスクに直接コンパイルしました！',
+    'toast.loaded': 'ワークスペースをロードしました: ${dirPath}',
+    
+    'matrix.toEditor': '標準エディタで編集',
+    'editor.toMatrix': 'マトリックスで表示',
+    
+    'language.confirmDelete': '本当に「${lang}」言語を削除しますか？このファイル内のすべての翻訳は永久に失われます！',
+    'language.deleting': '言語を削除中',
+    'language.deleted': '「${lang}」言語がプロジェクトから正常に削除されました。',
   },
 };
 
