@@ -11,9 +11,21 @@ So, here it is:
 
 ## STATE
 
-This project is at its earliest stage; i think the more i maintain it, the less vibecoded garbage there will be. I already know about some bugs and visual errors (for example, at big scaling you couldn't close the window, etc.). 
+This project is at its earliest stage; i think the more i maintain it, the less vibecoded garbage there will be. I already know about some bugs and visual errors and they will be addressed.
 
-If you wanna participate, i'd be more than happy.
+## STACK
+
+![Tauri](https://img.shields.io/badge/Tauri-24C8DB?style=for-the-badge&logo=tauri&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+
+* **Core/Desktop:** [Tauri](https://tauri.app/) driven by **Rust** (`.rs`) for blazing-fast native file system operations and binary compilation.
+* **Frontend:** Built with **React** & **TypeScript** (`.tsx`, `.ts`), styled with **Tailwind CSS**.
+
+If you wanna participate and help clean up the codebase or add new features, i'd be more than happy!
+
 
 ## KEY FEATURES
 
