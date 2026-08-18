@@ -7,7 +7,7 @@ So, here it is:
 # <img src="public/icons/128x128.png" width="32" alt="OpenPO Icon"> OpenPO
 
 
-**OpenPO** is a modern and fast cross-platform editor for GNU **gettext** (`.po`, `.pot`, `.mo`) localization catalogs, built for game and application developers. Powered by Tauri, React, TypeScript, and Tailwind CSS.
+**OpenPOT** is a modern and fast cross-platform editor for GNU **gettext** (`.po`, `.pot`, `.mo`) localization catalogs, built for game and application developers. Powered by Tauri, React, TypeScript, and Tailwind CSS.
 
 ## STATE
 
