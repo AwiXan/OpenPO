@@ -329,6 +329,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'files',
 
     'git.folderNotConnected': 'Project folder is not connected',
+    'git.folderNotConnectedDesc': 'Please open or connect a local directory containing your localization files to use Git version control.',
     'git.revertSuccess': 'File "{filename}" successfully reverted to HEAD',
     'git.revertEditorFailed': 'Failed to update editor: {error}',
     'git.revertConfirm': 'Are you sure you want to discard changes in "{file}" to HEAD?\nThis action cannot be undone.',
@@ -693,6 +694,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'файлов',
 
     'git.folderNotConnected': 'Папка проекта не подключена',
+    'git.folderNotConnectedDesc': 'Пожалуйста, откройте или подключите локальную папку с файлами локализации для использования контроля версий Git.',
     'git.revertSuccess': 'Файл "{filename}" успешно откачен до HEAD',
     'git.revertEditorFailed': 'Не удалось обновить редактор: {error}',
     'git.revertConfirm': 'Вы действительно хотите сбросить изменения в файле "{file}" до состояния HEAD?\nЭто действие нельзя отменить.',
@@ -1055,6 +1057,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'archivos',
 
     'git.folderNotConnected': 'La carpeta del proyecto no está conectada',
+    'git.folderNotConnectedDesc': 'Por favor, abra o conecte una carpeta local con sus archivos de localización para usar el control de versiones de Git.',
     'git.revertSuccess': 'Archivo "{filename}" revertido con éxito a HEAD',
     'git.revertEditorFailed': 'No se pudo actualizar el editor: {error}',
     'git.revertConfirm': '¿Seguro que deseas descartar los cambios en "{file}" a HEAD?\nEsta acción no se puede deshacer.',
@@ -1418,6 +1421,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'fichiers',
 
     'git.folderNotConnected': 'Le dossier du projet n\'est pas connecté',
+    'git.folderNotConnectedDesc': 'Veuillez ouvrir ou connecter un dossier local contenant vos fichiers de localisation pour utiliser le contrôle de version Git.',
     'git.revertSuccess': 'Le fichier "{filename}" a été rétabli sur HEAD avec succès',
     'git.revertEditorFailed': 'Échec de la mise à jour de l\'éditeur : {error}',
     'git.revertConfirm': 'Voulez-vous vraiment annuler les modifications de "{file}" vers HEAD ?\nCette action est irréversible.',
@@ -1781,6 +1785,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'Dateien',
 
     'git.folderNotConnected': 'Projektordner ist nicht verbunden',
+    'git.folderNotConnectedDesc': 'Bitte öffnen oder verbinden Sie einen lokalen Ordner mit Ihren Lokalisierungsdateien, um die Git-Versionskontrolle zu nutzen.',
     'git.revertSuccess': 'Datei "{filename}" erfolgreich auf HEAD zurückgesetzt',
     'git.revertEditorFailed': 'Editor konnte nicht aktualisiert werden: {error}',
     'git.revertConfirm': 'Möchten Sie die Änderungen in "{file}" wirklich auf HEAD zurücksetzen?\nDiese Aktion kann nicht rückgängig gemacht werden.',
@@ -2144,6 +2149,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': '个文件',
 
     'git.folderNotConnected': '项目文件夹未连接',
+    'git.folderNotConnectedDesc': '请打开或连接包含本地化文件的本地文件夹以使用 Git 版本控制。',
     'git.revertSuccess': '文件 "{filename}" 已成功回滚至 HEAD',
     'git.revertEditorFailed': '无法更新编辑器: {error}',
     'git.revertConfirm': '确定要放弃 "{file}" 中的更改并重置到 HEAD 吗？\n此操作无法撤消。',
@@ -2507,6 +2513,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.files': 'ファイル',
 
     'git.folderNotConnected': 'プロジェクトフォルダーが接続されていません',
+    'git.folderNotConnectedDesc': 'Git バージョン管理を使用するには、ローカライズファイルが含まれるローカルフォルダーを開くか接続してください。',
     'git.revertSuccess': 'ファイル "{filename}" を HEAD に正常に戻しました',
     'git.revertEditorFailed': 'エディターを更新できませんでした: {error}',
     'git.revertConfirm': '"{file}" の変更を破棄して HEAD の状態に戻しますか？\nこの操作は取り消せません。',

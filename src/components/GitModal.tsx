@@ -371,7 +371,7 @@ export const GitModal: React.FC<GitModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={t('git.title')}
-      subtitle={folderPath || 'No folder connected'}
+      subtitle={folderPath || t('git.folderNotConnected')}
       icon={<GitBranch className="w-4 h-4" />}
       maxWidth="max-w-6xl"
       footer={modalFooter}
@@ -379,8 +379,8 @@ export const GitModal: React.FC<GitModalProps> = ({
       {!folderPath ? (
         <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
           <AlertTriangle className="w-10 h-10 text-[#F59E0B]" />
-          <h4 className="text-base font-semibold text-white">{t('git.folderRequired')}</h4>
-          <p className="text-xs text-[#94A3B8]">{t('git.folderRequiredDesc')}</p>
+          <h4 className="text-base font-semibold text-white">{t('git.folderNotConnected')}</h4>
+          <p className="text-xs text-[#94A3B8]">{t('git.folderNotConnectedDesc')}</p>
         </div>
       ) : !isInitialized ? (
         <div className="flex flex-col items-center justify-center p-8 text-center space-y-4">
