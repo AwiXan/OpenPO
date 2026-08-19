@@ -269,6 +269,18 @@ export function useWorkspaceActions(
         const domain = w.domainName || w.potFile.domainName || 'messages';
         const scheme = settings.poNamingScheme || 'domain_lang';
         const filename = formatPoFilename(domain, langCode, scheme);
+        
+
+        const poHeader: PoHeader = { 
+          projectIdVersion: w.potFile.header.projectIdVersion || `${w.name} 1.0`, 
+          language: langCode, 
+          pluralForms: pluralForms || getPluralRuleForLanguage(langCode).formula, 
+          mimeVersion: '1.0', 
+          contentType: 'text/plain; charset=UTF-8', 
+          contentTransferEncoding: '8bit', 
+          xGenerator: 'PoCraft Gettext Studio', 
+          rawHeaders: {} 
+        };
         const poHeader: PoHeader = { projectIdVersion: w.potFile.header.projectIdVersion || `${w.name} 1.0`, language: langCode, pluralForms, mimeVersion: '1.0', contentType: 'text/plain; charset=UTF-8', contentTransferEncoding: '8bit', xGenerator: 'PoCraft Gettext Studio', rawHeaders: {} };
         const rule = getPluralRuleForLanguage(langCode, pluralForms);
         const poEntries: PoEntry[] = w.potFile.entries.map((potEntry) => ({ ...potEntry, msgstr: potEntry.msgidPlural ? Array.from({ length: rule.nplurals }, () => '') : [''], flags: [] }));

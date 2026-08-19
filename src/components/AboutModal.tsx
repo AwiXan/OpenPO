@@ -179,7 +179,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
           <div className="flex items-center gap-1.5">
             <span>{t('about.engineName')}</span>
             <span>•</span>
-            <span className="font-mono text-[#94A3B8]">v1.2</span>
+            <span className="font-mono text-[#94A3B8]">v1.4</span>
           </div>
           <div className="flex items-center gap-1 text-[#38BDF8]">
             <Heart className="w-3 h-3 fill-current text-rose-400" />

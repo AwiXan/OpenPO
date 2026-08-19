@@ -79,6 +79,10 @@ export function useFileSystemSync(
       const poRecords: PoFileRecord[] = poFilesScanned.map((f, i) => {
         const parsed = parsePoContent(f.content);
         const langCode = parsed.header.language || f.name.replace(/\.po$/, '');
+        parsed.header.language = langCode;
+        if (!parsed.header.pluralForms) {
+          parsed.header.pluralForms = getPluralRuleForLanguage(langCode).formula;
+        }
         return {
           id: `po_${langCode}_${Date.now()}_${i}`,
           filename: f.name,
@@ -192,7 +196,7 @@ export function useFileSystemSync(
 
         for (const po of currentWorkspace.poFiles) {
           const poFilename = po.filename || formatPoFilename(domain, po.language, settings.poNamingScheme);
-          const poContent = serializePoFile(po.header, po.entries, false, settings.autoGenerateCategories ?? true);
+          const poContent = serializePoFile(po.header, po.entries, false, settings.autoGenerateCategories ?? true, po.language);
           const fullPoPath = `${cleanDir}/${poFilename}`;
 
           await writeNativeTextFile(fullPoPath, poContent);
@@ -273,9 +277,9 @@ export function useFileSystemSync(
     if (format === 'gettext') {
       const zip = new JSZip();
       const folder = zip.folder(safeName) || zip;
-          folder.file(currentWorkspace.potFile.filename || `${domain}.pot`, serializePoFile(currentWorkspace.potFile.header, currentWorkspace.potFile.entries, true, settings.autoGenerateCategories ?? true));
+          folder.file(currentWorkspace.potFile.filename || `${domain}.pot`, serializePoFile(poRecord.header, poRecord.entries, false, settings.autoGenerateCategories ?? true, poRecord.language));
       currentWorkspace.poFiles.forEach((po) => {
-        folder.file(po.filename || formatPoFilename(domain, po.language, settings.poNamingScheme), serializePoFile(po.header, po.entries, false, settings.autoGenerateCategories ?? true));
+        folder.file(po.filename || formatPoFilename(domain, po.language, settings.poNamingScheme), serializePoFile(poRecord.header, poRecord.entries, false, settings.autoGenerateCategories ?? true, poRecord.language));
         folder.file(formatMoFilename(domain, po.language, settings.poNamingScheme), compileMoBinary(po.header, po.entries));
       });
       await writeNativeBinaryFile(`${destination}/${safeName}.zip`, await zip.generateAsync({ type: 'uint8array' }));
@@ -372,7 +376,7 @@ export function useFileSystemSync(
         try {
           const domain = currentWorkspace.domainName || 'messages';
           const poFilename = poRecord.filename || formatPoFilename(domain, poRecord.language, settings.poNamingScheme);
-          const poContent = serializePoFile(poRecord.header, poRecord.entries, false, settings.autoGenerateCategories ?? true);
+          const poContent = serializePoFile(poRecord.header, poRecord.entries, false, settings.autoGenerateCategories ?? true, poRecord.language);
           const cleanDir = dirPath.replace(/\\/g, '/');
           const fullPoPath = `${cleanDir}/${poFilename}`;
 
@@ -431,6 +435,11 @@ export function useFileSystemSync(
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
+    header.language = langCode;
+        if (!header.pluralForms) {
+          header.pluralForms = getPluralRuleForLanguage(langCode).formula;
+        }
+
     if (!files || files.length === 0) return;
 
     for (let i = 0; i < files.length; i++) {

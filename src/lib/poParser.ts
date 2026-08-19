@@ -1,5 +1,6 @@
 import { PoEntry, PoHeader } from '../types/gettext';
 import { deriveCategory } from './categorizer';
+import { getPluralRuleForLanguage } from './pluralEngine';
 
 // Generate lightweight unique IDs
 let idCounter = 1;
@@ -19,23 +20,28 @@ export function parseHeader(headerStr: string): PoHeader {
     if (colonIdx > 0) {
       const key = line.slice(0, colonIdx).trim();
       const val = line.slice(colonIdx + 1).trim();
-      rawHeaders[key] = val;
+      rawHeaders[key] = val; // Сохраняем оригинальный регистр
     }
   }
 
+  const getHeader = (key: string) => {
+    const foundKey = Object.keys(rawHeaders).find(k => k.toLowerCase() === key.toLowerCase());
+    return foundKey ? rawHeaders[foundKey] : undefined;
+  };
+
   return {
-    projectIdVersion: rawHeaders['Project-Id-Version'],
-    reportMsgidBugsTo: rawHeaders['Report-Msgid-Bugs-To'],
-    potCreationDate: rawHeaders['POT-Creation-Date'],
-    poRevisionDate: rawHeaders['PO-Revision-Date'],
-    lastTranslator: rawHeaders['Last-Translator'],
-    languageTeam: rawHeaders['Language-Team'],
-    language: rawHeaders['Language'],
-    mimeVersion: rawHeaders['MIME-Version'] || '1.0',
-    contentType: rawHeaders['Content-Type'] || 'text/plain; charset=UTF-8',
-    contentTransferEncoding: rawHeaders['Content-Transfer-Encoding'] || '8bit',
-    pluralForms: rawHeaders['Plural-Forms'],
-    xGenerator: rawHeaders['X-Generator'] || 'PoCraft Gettext Studio',
+    projectIdVersion: getHeader('Project-Id-Version'),
+    reportMsgidBugsTo: getHeader('Report-Msgid-Bugs-To'),
+    potCreationDate: getHeader('POT-Creation-Date'),
+    poRevisionDate: getHeader('PO-Revision-Date'),
+    lastTranslator: getHeader('Last-Translator'),
+    languageTeam: getHeader('Language-Team'),
+    language: getHeader('Language'),
+    mimeVersion: getHeader('MIME-Version') || '1.0',
+    contentType: getHeader('Content-Type') || 'text/plain; charset=UTF-8',
+    contentTransferEncoding: getHeader('Content-Transfer-Encoding') || '8bit',
+    pluralForms: getHeader('Plural-Forms'),
+    xGenerator: getHeader('X-Generator') || 'PoCraft Gettext Studio',
     rawHeaders,
   };
 }
@@ -43,12 +49,14 @@ export function parseHeader(headerStr: string): PoHeader {
 /**
  * Serializes PoHeader to gettext header string
  */
-export function serializeHeader(header: PoHeader): string {
+export function serializeHeader(header: PoHeader, langOverride?: string): string {
   const lines: string[] = [];
   
   const add = (k: string, v?: string) => {
     if (v) lines.push(`${k}: ${v}\\n`);
   };
+
+  const lang = langOverride || header.language || 'en';
 
   add('Project-Id-Version', header.projectIdVersion || 'Project 1.0');
   add('Report-Msgid-Bugs-To', header.reportMsgidBugsTo || '');
@@ -56,18 +64,24 @@ export function serializeHeader(header: PoHeader): string {
   add('PO-Revision-Date', header.poRevisionDate || new Date().toISOString().slice(0, 19).replace('T', ' ') + '+0000');
   add('Last-Translator', header.lastTranslator || 'Translator <translator@example.com>');
   add('Language-Team', header.languageTeam || 'English <team@example.com>');
-  add('Language', header.language || 'en');
+  add('Language', lang);
   add('MIME-Version', header.mimeVersion || '1.0');
   add('Content-Type', header.contentType || 'text/plain; charset=UTF-8');
   add('Content-Transfer-Encoding', header.contentTransferEncoding || '8bit');
-  if (header.pluralForms) {
-    add('Plural-Forms', header.pluralForms);
+
+  let pluralForms = header.pluralForms;
+  if (!pluralForms || pluralForms.trim() === '') {
+    pluralForms = getPluralRuleForLanguage(lang).formula;
   }
+  add('Plural-Forms', pluralForms);
   add('X-Generator', header.xGenerator || 'PoCraft Gettext Studio');
 
-  // Any custom raw headers not explicitly covered
+  // Any custom raw headers not explicitly covered (игнорируем дубликаты в любом регистре)
+  const skipKeys = ['Project-Id-Version', 'Report-Msgid-Bugs-To', 'POT-Creation-Date', 'PO-Revision-Date', 'Last-Translator', 'Language-Team', 'Language', 'MIME-Version', 'Content-Type', 'Content-Transfer-Encoding', 'Plural-Forms', 'X-Generator'];
+  
   for (const [k, v] of Object.entries(header.rawHeaders || {})) {
-    if (!lines.some(l => l.startsWith(`${k}:`))) {
+    const isStandard = skipKeys.some(sk => sk.toLowerCase() === k.toLowerCase());
+    if (!isStandard) {
       add(k, v);
     }
   }
@@ -341,14 +355,14 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
 /**
  * Serializes PoHeader & PoEntry list back into valid gettext .po or .pot file
  */
-export function serializePoFile(header: PoHeader, entries: PoEntry[], isPot = false, autoGenerateCategories = false): string {
+export function serializePoFile(header: PoHeader, entries: PoEntry[], isPot = false, autoGenerateCategories = false, langOverride?: string): string {
   let output = '';
 
   // 1. Header block
   output += '#, fuzzy\n';
   output += 'msgid ""\n';
   output += 'msgstr ""\n';
-  const serializedHeader = serializeHeader(header);
+  const serializedHeader = serializeHeader(header, langOverride);
   for (const line of serializedHeader.split('\\n')) {
     if (line) {
       output += `"${line}\\n"\n`;
