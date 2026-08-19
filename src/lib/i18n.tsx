@@ -44,7 +44,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Multi-Language Matrix Grid',
     'menu.viewRaw': 'Raw PO/POT Source Inspector',
     'menu.preferences': 'Preferences & Settings...',
-    'menu.about': 'About OpenPO',
+    'menu.about': 'About OpenPOT',
     'menu.shortcuts': 'Keyboard Shortcuts Reference',
 
     // Header Toolbar
@@ -179,7 +179,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.showNewlinesDefault': 'Show Visible \\n Badges by Default',
     'settings.showNewlinesDesc': 'Displays visual indicator badges (e.g. ↵ 2\\n) for strings with newlines.',
     'settings.uiLanguage': 'UI Display Language',
-    'settings.uiLanguageDesc': 'Choose your preferred language for the OpenPO interface.',
+    'settings.uiLanguageDesc': 'Choose your preferred language for the OpenPOT interface.',
     'settings.tmSection': 'Translation Memory & Fuzzy Matching',
     'settings.tmDesc': 'Configure how Translation Memory evaluates and suggests existing translations.',
     'settings.similarityThreshold': 'Similarity Matching Threshold',
@@ -187,7 +187,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.autoMarkFuzzy': 'Automatically flag matches under 100% as Fuzzy',
     'settings.autoMarkFuzzyDesc': 'When applying TM suggestions below 100% match, automatically mark the entry with the "fuzzy" flag for manual review.',
     'settings.tmHowTitle': 'How Translation Memory Matching Works',
-    'settings.tmHowDesc': 'OpenPO indexes all translated segments across open workspaces in real-time. When you edit a string, candidate matches with a similarity score meeting or exceeding your configured threshold ({threshold}%) appear in the suggestions pane.',
+    'settings.tmHowDesc': 'OpenPOT indexes all translated segments across open workspaces in real-time. When you edit a string, candidate matches with a similarity score meeting or exceeding your configured threshold ({threshold}%) appear in the suggestions pane.',
     'settings.gitAuthorTitle': 'Git Committer Attribution',
     'settings.gitAuthorDesc': 'Default author identity written to gettext workspace Git commits and PO revision headers.',
     'settings.gitAuthorName': 'Author Name:',
@@ -205,11 +205,11 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Close',
 
     // About Modal
-    'about.title': 'About OpenPO',
+    'about.title': 'About OpenPOT',
     'about.subtitle': 'Modular GNU gettext (.po / .pot / .mo) Localization Suite',
     'about.vibecodedTitle': 'AI SLOP ALERT!',
     'about.aiCraft': '100% AI Craft',
-    'about.vibecodedNote': 'This app is 100% vibecoded asf (with guidance by AwiXan, but i, like, did nothing). Just for the sake of convenience, I think i have to release this app.',
+    'about.vibecodedNote': 'This app is 100% vibecoded asf (with guidance by AwiXan, but i did only a lil bit). Just for the sake of convenience, I think i have to release this app.',
     'about.coreFeatures': 'Core Features',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Full parser, formatter, and instantaneous browser-side binary .mo compiler.',
@@ -223,7 +223,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Seamless local folder scanner, automatic .mo emission, and one-click ZIP packaging.',
     'about.featurePluralTitle': 'Plural Forms Engine',
     'about.featurePluralDesc': 'Interactive nplurals tester supporting Slavic, Germanic, Romance, and CJK plural rules.',
-    'about.engineName': 'OpenPO Localization Engine',
+    'about.engineName': 'OpenPOT Localization Engine',
     'about.footerTagline': 'Created for fast game & app translations',
 
     // Category Management
@@ -292,7 +292,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.unstagedChanges': 'CHANGES',
     'git.workingTreeClean': 'Working tree clean.',
     'git.masterPot': 'Master POT Template',
-    'git.discardChanges': 'Discard changes (Revert to HEAD)',
+    'git.revert': 'Revert',
     'git.stageFile': 'Stage file',
     'git.unmodified': 'UNMODIFIED',
     'git.commitPlaceholder': 'Commit message (Ctrl+Enter to commit)...',
@@ -409,7 +409,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Матрица переводов',
     'menu.viewRaw': 'Исходный код PO/POT',
     'menu.preferences': 'Настройки и параметры...',
-    'menu.about': 'О программе OpenPO',
+    'menu.about': 'О программе OpenPOT',
     'menu.shortcuts': 'Горячие клавиши',
 
     // Header Toolbar
@@ -544,7 +544,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.showNewlinesDefault': 'Показывать значки \\n по умолчанию',
     'settings.showNewlinesDesc': 'Отображает визуальные индикаторы (напр. ↵ 2\\n) для строк с переносами.',
     'settings.uiLanguage': 'Язык интерфейса приложения',
-    'settings.uiLanguageDesc': 'Выберите удобный для вас язык интерфейса OpenPO.',
+    'settings.uiLanguageDesc': 'Выберите удобный для вас язык интерфейса OpenPOT.',
     'settings.tmSection': 'Память переводов и нечёткий поиск (TM)',
     'settings.tmDesc': 'Настройте критерии оценки совпадений в Translation Memory.',
     'settings.similarityThreshold': 'Порог схожести нечётких совпадений',
@@ -552,7 +552,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.autoMarkFuzzy': 'Автоматически помечать совпадения <100% как Fuzzy',
     'settings.autoMarkFuzzyDesc': 'При применении подсказок TM ниже 100% совпадения, строка будет помечена флагом fuzzy для последующей проверки.',
     'settings.tmHowTitle': 'Как работает сопоставление памяти переводов',
-    'settings.tmHowDesc': 'OpenPO индексирует все переведенные сегменты по всем открытым проектам в реальном времени. При редактировании строки подсказки с процентом совпадения, превышающим или равным заданному порогу ({threshold}%), отображаются на панели подсказок.',
+    'settings.tmHowDesc': 'OpenPOT индексирует все переведенные сегменты по всем открытым проектам в реальном времени. При редактировании строки подсказки с процентом совпадения, превышающим или равным заданному порогу ({threshold}%), отображаются на панели подсказок.',
     'settings.gitAuthorTitle': 'Автор коммитов Git',
     'settings.gitAuthorDesc': 'Имя и email автора по умолчанию для коммитов Git и заголовков ревизий PO.',
     'settings.gitAuthorName': 'Имя автора:',
@@ -570,11 +570,11 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Закрыть',
 
     // About Modal
-    'about.title': 'О программе OpenPO',
+    'about.title': 'О программе OpenPOT',
     'about.subtitle': 'Модульная среда локализации GNU gettext (.po / .pot / .mo)',
     'about.vibecodedTitle': 'ОСТОРОЖНО ИИ-СЛОП!',
     'about.aiCraft': '100% ИИ-разработка',
-    'about.vibecodedNote': 'Это приложение на 100% сгенерировано нейросетями от компании Google, лишь под небольшим руководством AwiXan (я, типа, ничего сам не делал). Я решил выпустить это приложение чисто ради общего удобства.',
+    'about.vibecodedNote': 'Это приложение на 100% сгенерировано нейросетями от компании Google, лишь под небольшим руководством AwiXan (я, типа, мало чего сам сделал). Я решил выпустить это приложение чисто ради общего удобства.',
     'about.coreFeatures': 'Основные возможности',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Полноценный парсер, форматтер и мгновенный компилятор бинарных .mo прямо в браузере.',
@@ -588,7 +588,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Сканирование локальных папок, автоматическая генерация .mo и экспорт в ZIP в один клик.',
     'about.featurePluralTitle': 'Движок множественных форм',
     'about.featurePluralDesc': 'Интерактивный тест nplurals: поддержка славянских, германских, романских и азиатских правил.',
-    'about.engineName': 'Движок локализации OpenPO',
+    'about.engineName': 'Движок локализации OpenPOT',
     'about.footerTagline': 'Создано для быстрого перевода игр и приложений',
 
     // Category Management
@@ -657,7 +657,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.unstagedChanges': 'ИЗМЕНЕНИЯ',
     'git.workingTreeClean': 'Рабочая директория чиста.',
     'git.masterPot': 'Мастер-шаблон POT',
-    'git.discardChanges': 'Отменить изменения (Откатить к HEAD)',
+    'git.revert': 'Откат',
     'git.stageFile': 'Индексировать файл',
     'git.unmodified': 'БЕЗ ИЗМЕНЕНИЙ',
     'git.commitPlaceholder': 'Сообщение коммита (Ctrl+Enter для отправки)...',
@@ -774,7 +774,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Matriz multilingüe',
     'menu.viewRaw': 'Código fuente PO/POT',
     'menu.preferences': 'Preferencias y ajustes...',
-    'menu.about': 'Acerca de OpenPO',
+    'menu.about': 'Acerca de OpenPOT',
     'menu.shortcuts': 'Atajos de teclado',
 
     // Header Toolbar
@@ -907,7 +907,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.showNewlinesDefault': 'Mostrar insignias \\n visibles por defecto',
     'settings.showNewlinesDesc': 'Muestra insignias visuales (ej. ↵ 2\\n) para cadenas con saltos de línea.',
     'settings.uiLanguage': 'Idioma de la Interfaz',
-    'settings.uiLanguageDesc': 'Selecciona el idioma preferido para la interfaz de OpenPO.',
+    'settings.uiLanguageDesc': 'Selecciona el idioma preferido para la interfaz de OpenPOT.',
     'settings.tmSection': 'Memoria de Traducción y Coincidencias Difusas',
     'settings.tmDesc': 'Configura cómo la TM evalúa y sugiere traducciones existentes.',
     'settings.similarityThreshold': 'Umbral de Coincidencia de Similitud',
@@ -915,7 +915,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.autoMarkFuzzy': 'Marcar automáticamente como Fuzzy coincidencias < 100%',
     'settings.autoMarkFuzzyDesc': 'Al aplicar sugerencias de TM por debajo del 100%, marca la entrada como fuzzy para revisión.',
     'settings.tmHowTitle': 'Cómo funciona la concordancia de memoria de traducción',
-    'settings.tmHowDesc': 'OpenPO indexa todos los segmentos traducidos en los espacios de trabajo abiertos en tiempo real. Al editar una cadena, las coincidencias con una puntuación de similitud igual o superior al umbral configurado ({threshold}%) aparecen en el panel de sugerencias.',
+    'settings.tmHowDesc': 'OpenPOT indexa todos los segmentos traducidos en los espacios de trabajo abiertos en tiempo real. Al editar una cadena, las coincidencias con una puntuación de similitud igual o superior al umbral configurado ({threshold}%) aparecen en el panel de sugerencias.',
     'settings.gitAuthorTitle': 'Atribución del autor de Git',
     'settings.gitAuthorDesc': 'Identidad del autor predeterminada en los commits Git y encabezados PO.',
     'settings.gitAuthorName': 'Nombre del autor:',
@@ -933,7 +933,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Cerrar',
 
     // About Modal
-    'about.title': 'Acerca de OpenPO',
+    'about.title': 'Acerca de OpenPOT',
     'about.subtitle': 'Gettexte modulaire GNU (.po / .pot/. mo) Suite de localisation',
     'about.vibecodedTitle': 'Vibecodeado con AwiXan',
     'about.aiCraft': '100% Creación IA',
@@ -951,7 +951,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Escaneo de carpetas locales, generación automática de .mo y empaquetado ZIP en un clic.',
     'about.featurePluralTitle': 'Motor de formas plurales',
     'about.featurePluralDesc': 'Comprobador interactivo de nplurals compatible con reglas eslavas, germánicas, romances y CJK.',
-    'about.engineName': 'Motor de localización OpenPO',
+    'about.engineName': 'Motor de localización OpenPOT',
     'about.footerTagline': 'Creado para la traducción rápida de juegos y aplicaciones',
 
     // Category Management
@@ -1020,7 +1020,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.unstagedChanges': 'CAMBIOS',
     'git.workingTreeClean': 'Directorio de trabajo limpio.',
     'git.masterPot': 'Plantilla maestra POT',
-    'git.discardChanges': 'Descartar cambios (Revertir a HEAD)',
+    'git.revert': 'Descartar',
     'git.stageFile': 'Preparar archivo',
     'git.unmodified': 'SIN CAMBIOS',
     'git.commitPlaceholder': 'Mensaje de confirmación (Ctrl+Enter para confirmar)...',
@@ -1138,7 +1138,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Matrice multilingue',
     'menu.viewRaw': 'Source brute PO/POT',
     'menu.preferences': 'Préférences & paramètres...',
-    'menu.about': 'À propos d\'OpenPO',
+    'menu.about': 'À propos d\'OpenPOT',
     'menu.shortcuts': 'Raccourcis clavier',
 
     // Header Toolbar
@@ -1271,7 +1271,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.showNewlinesDefault': 'Afficher les badges \\n visibles par défaut',
     'settings.showNewlinesDesc': 'Affiche des indicateurs visuels (ex : ↵ 2\\n) pour les chaînes contenant des retours à la ligne.',
     'settings.uiLanguage': 'Langue de l\'Interface',
-    'settings.uiLanguageDesc': 'Choisissez la langue de l\'interface OpenPO.',
+    'settings.uiLanguageDesc': 'Choisissez la langue de l\'interface OpenPOT.',
     'settings.tmSection': 'Mémoire de Traduction & Correspondance Floue',
     'settings.tmDesc': 'Configurez l\'évaluation et les suggestions de la mémoire de traduction.',
     'settings.similarityThreshold': 'Seuil de Similarité',
@@ -1279,7 +1279,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.autoMarkFuzzy': 'Marquer automatiquement les correspondances < 100% comme Fuzzy',
     'settings.autoMarkFuzzyDesc': 'Lors de l\'application d\'une suggestion < 100%, marquer l\'entrée comme floue.',
     'settings.tmHowTitle': 'Fonctionnement de la mémoire de traduction',
-    'settings.tmHowDesc': 'OpenPO indexe tous les segments traduits dans les espaces ouverts en temps réel. Lors de la saisie, les correspondances supérieures ou égales à votre seuil ({threshold}%) s\'affichent dans le volet de suggestions.',
+    'settings.tmHowDesc': 'OpenPOT indexe tous les segments traduits dans les espaces ouverts en temps réel. Lors de la saisie, les correspondances supérieures ou égales à votre seuil ({threshold}%) s\'affichent dans le volet de suggestions.',
     'settings.gitAuthorTitle': 'Attribution de l\'auteur Git',
     'settings.gitAuthorDesc': 'Identité de l\'auteur par défaut inscrite dans les commits Git et les en-têtes PO.',
     'settings.gitAuthorName': 'Nom de l\'auteur :',
@@ -1297,7 +1297,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Fermer',
 
     // About Modal
-    'about.title': 'À propos d\'OpenPO',
+    'about.title': 'À propos d\'OpenPOT',
     'about.subtitle': 'Gettexte modulaire GNU (.po / .pot/. mo) Suite de localisation',
     'about.vibecodedTitle': 'Vibecodé avec AwiXan',
     'about.aiCraft': '100% Création IA',
@@ -1315,7 +1315,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Analyse des dossiers locaux, génération automatique de .mo et création d\'archives ZIP en un clic.',
     'about.featurePluralTitle': 'Moteur de formes plurielles',
     'about.featurePluralDesc': 'Testeur interactif de nplurals prenant en charge les règles slaves, germaniques, romanes et CJK.',
-    'about.engineName': 'Moteur de localisation OpenPO',
+    'about.engineName': 'Moteur de localisation OpenPOT',
     'about.footerTagline': 'Conçu pour la traduction rapide de jeux et d\'applications',
 
     // Category Management
@@ -1384,7 +1384,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.unstagedChanges': 'MODIFICATIONS',
     'git.workingTreeClean': 'Arborescence propre.',
     'git.masterPot': 'Modèle POT maître',
-    'git.discardChanges': 'Annuler les modifications (Revenir à HEAD)',
+    'git.revert': 'Annuler',
     'git.stageFile': 'Indexer le fichier',
     'git.unmodified': 'NON MODIFIÉ',
     'git.commitPlaceholder': 'Message de commit (Ctrl+Entrée pour valider)...',
@@ -1502,7 +1502,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': 'Mehrsprachige Matrix',
     'menu.viewRaw': 'PO/POT-Quellcode-Inspektor',
     'menu.preferences': 'Einstellungen & Optionen...',
-    'menu.about': 'Über OpenPO',
+    'menu.about': 'Über OpenPOT',
     'menu.shortcuts': 'Tastenkombinationen',
 
     // Header Toolbar
@@ -1635,7 +1635,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.showNewlinesDefault': '\\n-Symbole standardmäßig anzeigen',
     'settings.showNewlinesDesc': 'Zeigt visuelle Hinweise (z.B. ↵ 2\\n) für Zeilen mit Umbrüchen an.',
     'settings.uiLanguage': 'Oberflächensprache',
-    'settings.uiLanguageDesc': 'Wählen Sie Ihre bevorzugte Sprache für OpenPO.',
+    'settings.uiLanguageDesc': 'Wählen Sie Ihre bevorzugte Sprache für OpenPOT.',
     'settings.tmSection': 'Translation Memory & Fuzzy Matching',
     'settings.tmDesc': 'Konfigurieren Sie die Ähnlichkeitsberechnung des Translation Memory.',
     'settings.similarityThreshold': 'Ähnlichkeits-Schwellenwert',
@@ -1643,7 +1643,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.autoMarkFuzzy': 'Treffer unter 100% automatisch als Fuzzy markieren',
     'settings.autoMarkFuzzyDesc': 'Markiert angewendete TM-Vorschläge unter 100% automatisch zur Überprüfung.',
     'settings.tmHowTitle': 'Wie der Übersetzungsspeicher-Abgleich funktioniert',
-    'settings.tmHowDesc': 'OpenPO indiziert alle Segmente in Echtzeit. Bei der Bearbeitung werden Vorschläge ab dem Schwellenwert ({threshold}%) angezeigt.',
+    'settings.tmHowDesc': 'OpenPOT indiziert alle Segmente in Echtzeit. Bei der Bearbeitung werden Vorschläge ab dem Schwellenwert ({threshold}%) angezeigt.',
     'settings.gitAuthorTitle': 'Git-Autor-Zuordnung',
     'settings.gitAuthorDesc': 'Standard-Autorenidentität für Git-Commits und PO-Revisionskopfzeilen.',
     'settings.gitAuthorName': 'Name des Autors:',
@@ -1661,7 +1661,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': 'Schließen',
 
     // About Modal
-    'about.title': 'Über OpenPO',
+    'about.title': 'Über OpenPOT',
     'about.subtitle': 'Moderne GNU gettext (.po / .pot / .mo) Lokalisierungssuite',
     'about.vibecodedTitle': 'Gevibecoded mit AwiXan',
     'about.aiCraft': '100% KI-Handwerk',
@@ -1679,7 +1679,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Nahtloses Scannen lokaler Ordner, automatische .mo-Erstellung und ZIP-Export mit einem Klick.',
     'about.featurePluralTitle': 'Pluralformen-Engine',
     'about.featurePluralDesc': 'Interaktiver nplurals-Tester zur Unterstützung slawischer, germanischer, romanischer und CJK-Regeln.',
-    'about.engineName': 'OpenPO Lokalisierungs-Engine',
+    'about.engineName': 'OpenPOT Lokalisierungs-Engine',
     'about.footerTagline': 'Entwickelt für schnelle Übersetzungen von Spielen und Apps',
 
     // Category Management
@@ -1748,7 +1748,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.unstagedChanges': 'ÄNDERUNGEN',
     'git.workingTreeClean': 'Arbeitsverzeichnis sauber.',
     'git.masterPot': 'Master-POT-Vorlage',
-    'git.discardChanges': 'Änderungen verwerfen (Auf HEAD zurücksetzen)',
+    'git.revert': 'Verwerfen',
     'git.stageFile': 'Datei stagen',
     'git.unmodified': 'UNVERÄNDERT',
     'git.commitPlaceholder': 'Commit-Nachricht (Ctrl+Enter zum Bestätigen)...',
@@ -1866,7 +1866,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': '多语言矩阵网格',
     'menu.viewRaw': 'PO/POT 源码查看器',
     'menu.preferences': '首选项与设置...',
-    'menu.about': '关于 OpenPO',
+    'menu.about': '关于 OpenPOT',
     'menu.shortcuts': '键盘快捷键说明',
 
     // Header Toolbar
@@ -1999,7 +1999,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.showNewlinesDefault': '默认显示 \\n 换行标记徽章',
     'settings.showNewlinesDesc': '为含有换行符的文本显示直观的指示徽章（例如 ↵ 2\\n）。',
     'settings.uiLanguage': '界面显示语言',
-    'settings.uiLanguageDesc': '选择您习惯的 OpenPO 界面操作语言。',
+    'settings.uiLanguageDesc': '选择您习惯的 OpenPOT 界面操作语言。',
     'settings.tmSection': '翻译记忆库与模糊匹配 (TM)',
     'settings.tmDesc': '配置翻译记忆库的相似度匹配与自动提示规则。',
     'settings.similarityThreshold': '模糊匹配相似度阈值',
@@ -2007,7 +2007,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.autoMarkFuzzy': '对低于 100% 的匹配自动标记为 Fuzzy',
     'settings.autoMarkFuzzyDesc': '当采纳低于 100% 的 TM 建议时，自动添加 fuzzy 标记以便人工审核。',
     'settings.tmHowTitle': '翻译记忆匹配的工作原理',
-    'settings.tmHowDesc': 'OpenPO 实时索引所有已打开工作区的翻译条目。当您编辑文本时，相似度达到或超过设定阈值（{threshold}%）的匹配项将自动显示在建议面板中。',
+    'settings.tmHowDesc': 'OpenPOT 实时索引所有已打开工作区的翻译条目。当您编辑文本时，相似度达到或超过设定阈值（{threshold}%）的匹配项将自动显示在建议面板中。',
     'settings.gitAuthorTitle': 'Git 提交者归属',
     'settings.gitAuthorDesc': '写入 gettext 工作区 Git 提交和 PO 修订头的默认作者身份。',
     'settings.gitAuthorName': '作者姓名:',
@@ -2025,7 +2025,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': '关闭',
 
     // About Modal
-    'about.title': '关于 OpenPO',
+    'about.title': '关于 OpenPOT',
     'about.subtitle': '现代专业 GNU gettext (.po / .pot / .mo) 本地化套件',
     'about.vibecodedTitle': '与 AwiXan 共同氛围编码',
     'about.aiCraft': '100% AI 创作',
@@ -2043,7 +2043,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': '无缝本地文件夹扫描、自动生成 .mo 文件和一键 ZIP 打包。',
     'about.featurePluralTitle': '复数形式引擎',
     'about.featurePluralDesc': '交互式 nplurals 测试器，支持斯拉夫语族、日耳曼语族、罗曼语族和中日韩复数规则。',
-    'about.engineName': 'OpenPO 本地化引擎',
+    'about.engineName': 'OpenPOT 本地化引擎',
     'about.footerTagline': '专为快速游戏和应用程序本地化而打造',
 
     // Category Management
@@ -2112,7 +2112,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.unstagedChanges': '更改',
     'git.workingTreeClean': '工作区目录干净。',
     'git.masterPot': '主 POT 模板',
-    'git.discardChanges': '放弃更改 (恢复至 HEAD)',
+    'git.revert': '放弃',
     'git.stageFile': '暂存文件',
     'git.unmodified': '未修改',
     'git.commitPlaceholder': '提交信息 (Ctrl+Enter 提交)...',
@@ -2230,7 +2230,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'menu.viewMatrix': '多言語マトリクス',
     'menu.viewRaw': 'PO/POT 生ソースコード',
     'menu.preferences': '環境設定＆オプション...',
-    'menu.about': 'OpenPO について',
+    'menu.about': 'OpenPOT について',
     'menu.shortcuts': 'ショートカット一覧',
 
     // Header Toolbar
@@ -2363,7 +2363,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.showNewlinesDefault': '\\n マークをデフォルトで表示',
     'settings.showNewlinesDesc': '改行を含む文字列に視覚的なバッジ（例: ↵ 2\\n）を表示します。',
     'settings.uiLanguage': 'UI 表示言語',
-    'settings.uiLanguageDesc': 'OpenPO のインターフェース言語を選択します。',
+    'settings.uiLanguageDesc': 'OpenPOT のインターフェース言語を選択します。',
     'settings.tmSection': '翻訳メモリ & ファジーマッチ (TM)',
     'settings.tmDesc': '翻訳メモリの類似度判定と自動サジェスト設定。',
     'settings.similarityThreshold': '類似度マッチング閾値',
@@ -2371,7 +2371,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.autoMarkFuzzy': '100% 未満の一致を自動的に Fuzzy に設定',
     'settings.autoMarkFuzzyDesc': '100% 未満の TM 提案を適用した際、確認用に自動で fuzzy フラグを付与します。',
     'settings.tmHowTitle': '翻訳メモリ照合の仕組み',
-    'settings.tmHowDesc': 'OpenPO は開いているすべてのワークスペースの翻訳セグメントをリアルタイムでインデックス化します。文字列を編集すると、設定した閾値（{threshold}%）以上の一致候補がサジェストパネルに表示されます。',
+    'settings.tmHowDesc': 'OpenPOT は開いているすべてのワークスペースの翻訳セグメントをリアルタイムでインデックス化します。文字列を編集すると、設定した閾値（{threshold}%）以上の一致候補がサジェストパネルに表示されます。',
     'settings.gitAuthorTitle': 'Gitコミッターの帰属',
     'settings.gitAuthorDesc': 'gettext ワークスペースの Git コミットおよび PO 改訂ヘッダーに書き込まれるデフォルトの作成者情報。',
     'settings.gitAuthorName': '作成者名:',
@@ -2389,7 +2389,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'settings.close': '閉じる',
 
     // About Modal
-    'about.title': 'OpenPO について',
+    'about.title': 'OpenPOT について',
     'about.subtitle': '最新のプロフェッショナル GNU gettext (.po / .pot / .mo) ローカリゼーション環境',
     'about.vibecodedTitle': 'AwiXan とのバイブコーディング',
     'about.aiCraft': '100% AI開発',
@@ -2407,7 +2407,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'シームレスなローカルフォルダスキャン、自動 .mo 生成、ワンクリック ZIP パッケージング。',
     'about.featurePluralTitle': '複数形エンジン',
     'about.featurePluralDesc': 'スラヴ、ゲルマン、ロマンス、日中韓の複数形ルールをサポートする対話型 nplurals テスター。',
-    'about.engineName': 'OpenPO ローカリゼーションエンジン',
+    'about.engineName': 'OpenPOT ローカリゼーションエンジン',
     'about.footerTagline': 'ゲームやアプリの素早い翻訳のために作成されました',
 
     // Category Management
@@ -2476,7 +2476,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'git.unstagedChanges': '変更',
     'git.workingTreeClean': '作業ツリーはクリーンです。',
     'git.masterPot': 'マスター POT テンプレート',
-    'git.discardChanges': '変更を破棄 (HEAD に戻す)',
+    'git.revert': '破棄',
     'git.stageFile': 'ファイルをステージ',
     'git.unmodified': '変更なし',
     'git.commitPlaceholder': 'コミットメッセージ (Ctrl+Enter でコミット)...',
@@ -2590,7 +2590,7 @@ const I18nContext = createContext<I18nContextType>({
 
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<UiLanguage>(() => {
-    const saved = localStorage.getItem('openpo_ui_lang') || localStorage.getItem('pocraft_ui_lang');
+    const saved = localStorage.getItem('openpoT_ui_lang') || localStorage.getItem('pocraft_ui_lang');
     if (saved && ['en', 'ru', 'es', 'fr', 'de', 'zh', 'ja'].includes(saved)) {
       return saved as UiLanguage;
     }
@@ -2599,7 +2599,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setLanguage = (newLang: UiLanguage) => {
     setLanguageState(newLang);
-    localStorage.setItem('openpo_ui_lang', newLang);
+    localStorage.setItem('openpoT_ui_lang', newLang);
   };
 
   const t = (key: string, defaultVal?: string): string => {

@@ -5,10 +5,10 @@ If you're squeamish about software built largely with AI (so-called "vibecoded")
 I was trying to make a translation for my game; firstly, I decided to do it using spreadsheets, but it was kinda unmodular. Then I found out about **gettext** (`.pot`, `.po`), and I really liked its modularity and how well it works with Git... But when I tried to use it with POEdit, it was just inconvenient: to create new keys you would need to edit the `.pot` file in Notepad, and to sync something you needed premium... Fuck it, I don't compromise, I wanna build a program that would help me, not use me.
 So, here it is:
 
-# <img src="public/icons/128x128.png" width="32" alt="OpenPO Icon"> OpenPO
+# <img src="public/icons/128x128.png" width="32" alt="OpenPOT Icon"> OpenPOT
 
 
-**OpenPO** is a modern and fast cross-platform editor for GNU **gettext** (`.po`, `.pot`, `.mo`) localization catalogs, built for game and application developers. Powered by Tauri, React, TypeScript, and Tailwind CSS.
+**OpenPOT** is a modern and fast cross-platform editor for GNU **gettext** (`.po`, `.pot`, `.mo`) localization catalogs, built for game and application developers. Powered by Tauri, React, TypeScript, and Tailwind CSS.
 
 ## STATE
 

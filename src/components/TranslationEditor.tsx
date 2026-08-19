@@ -45,6 +45,7 @@ interface TranslationEditorProps {
   autoMarkFuzzyUnder100?: boolean;
   onUpdateCategory?: (entryId: string, newCategory: string) => void;
   availableCategories?: string[];
+  onNavigateToEditor: (entryId: string, poFileId: string) => void;
 }
 
 export const TranslationEditor: React.FC<TranslationEditorProps> = ({
@@ -111,6 +112,20 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
     entry?.category,
     entry?.flags
   ]);
+
+  useEffect(() => {
+    if (entry) {
+      const timer = setTimeout(() => {
+        if (activeTextareaRef.current) {
+          activeTextareaRef.current.focus();
+          // Ставим курсор в самый конец текста
+          const valLen = activeTextareaRef.current.value.length;
+          activeTextareaRef.current.setSelectionRange(valLen, valLen);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [entry?.id, activePluralTab]);
 
   if (!entry) {
     return (

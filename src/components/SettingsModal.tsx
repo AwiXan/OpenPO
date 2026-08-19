@@ -9,12 +9,15 @@ import {
   ShieldCheck,
   FileCode,
   FolderSync,
+  ArrowBigDown,
   Layers,
   CornerDownLeft,
+  Eye
 } from 'lucide-react';
 import { AppSettings, PoNamingScheme } from '../types/gettext';
 import { useTranslation, SUPPORTED_UI_LANGUAGES, UiLanguage } from '../lib/i18n';
 import { Modal } from './ui/Modal';
+import { SettingToggleRow } from './ui/SettingToggleRow';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -38,7 +41,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [localDomain, setLocalDomain] = useState<string>(domainName);
   const [savedFeedback, setSavedFeedback] = useState(false);
   const [activeTab, setActiveTab] = useState<'language' | 'modular' | 'tm' | 'newlines' | 'git' | 'editor'>('modular');
-
 
   const handleSave = () => {
     onSaveSettings(localSettings);
@@ -132,11 +134,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                isActive
-                  ? 'border-[#3B82F6] text-[#3B82F6]'
-                  : 'border-transparent text-[#94A3B8] hover:text-[#E2E8F0]'
-              }`}
+              className={`px-3 py-2 text-xs font-medium flex items-center gap-1.5 border-b-2 transition-all cursor-pointer whitespace-nowrap ${isActive
+                ? 'border-[#3B82F6] text-[#3B82F6]'
+                : 'border-transparent text-[#94A3B8] hover:text-[#E2E8F0]'
+                }`}
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
@@ -185,11 +186,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <button
                     key={scheme.id}
                     onClick={() => setLocalSettings({ ...localSettings, poNamingScheme: scheme.id })}
-                    className={`p-3 rounded-lg border text-left cursor-pointer transition-all ${
-                      localSettings.poNamingScheme === scheme.id
-                        ? 'bg-[#1E293B] border-[#3B82F6] text-white shadow-xs'
-                        : 'bg-[#16191E] border-[#2D3139] text-[#94A3B8] hover:bg-[#1C2128]'
-                    }`}
+                    className={`p-3 rounded-lg border text-left cursor-pointer transition-all ${localSettings.poNamingScheme === scheme.id
+                      ? 'bg-[#1E293B] border-[#3B82F6] text-white shadow-xs'
+                      : 'bg-[#16191E] border-[#2D3139] text-[#94A3B8] hover:bg-[#1C2128]'
+                      }`}
                   >
                     <div className="flex justify-between mb-1">
                       <span className="font-mono font-bold text-xs">{scheme.title}</span>
@@ -202,54 +202,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             </div>
 
-            <div className="bg-[#090B0E] p-4 rounded-lg border border-[#2D3139] flex justify-between">
-              <div>
-                <label className="text-white font-semibold flex items-center gap-1.5">
-                  <FolderSync className="w-4 h-4 text-[#4ADE80]" />
-                  <span>{t('settings.autoMoTitle')}</span>
-                </label>
-                <p className="text-[11px] text-[#64748B] mt-0.5">{t('settings.autoMoDesc')}</p>
-              </div>
-              <button
-                onClick={() => setLocalSettings({ ...localSettings, autoCompileMoOnSave: !localSettings.autoCompileMoOnSave })}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${localSettings.autoCompileMoOnSave ? 'bg-[#3B82F6]' : 'bg-[#2D3139]'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${localSettings.autoCompileMoOnSave ? 'translate-x-4' : 'translate-x-1'}`} />
-              </button>
+            <div className="space-y-3">
+              <SettingToggleRow
+                icon={<FolderSync className="w-4 h-4 text-[#4ADE80]" />}
+                title={t('settings.autoMoTitle')}
+                description={t('settings.autoMoDesc')}
+                checked={localSettings.autoCompileMoOnSave}
+                onChange={(checked) => setLocalSettings({ ...localSettings, autoCompileMoOnSave: checked })}
+              />
             </div>
           </div>
         )}
 
         {activeTab === 'newlines' && (
           <div className="space-y-4">
-            <div className="bg-[#090B0E] p-4 rounded-lg border border-[#2D3139] flex justify-between">
-              <div>
-                <label className="text-white font-semibold flex items-center gap-1.5">
-                  <CornerDownLeft className="w-4 h-4 text-[#38BDF8]" />
-                  <span>{t('settings.autoNewlineEnter')}</span>
-                </label>
-                <p className="text-[11px] text-[#64748B] mt-0.5">{t('settings.autoNewlineDesc')}</p>
-              </div>
-              <button
-                onClick={() => setLocalSettings({ ...localSettings, autoNewlineOnEnter: !localSettings.autoNewlineOnEnter })}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${localSettings.autoNewlineOnEnter ? 'bg-[#3B82F6]' : 'bg-[#2D3139]'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${localSettings.autoNewlineOnEnter ? 'translate-x-4' : 'translate-x-1'}`} />
-              </button>
-            </div>
+            <SettingToggleRow
+              icon={<CornerDownLeft className="w-4 h-4 text-[#38BDF8]" />}
+              title={t('settings.autoNewlineEnter')}
+              description={t('settings.autoNewlineDesc')}
+              checked={localSettings.autoNewlineOnEnter}
+              onChange={(checked) => setLocalSettings({ ...localSettings, autoNewlineOnEnter: checked })}
+            />
 
-            <div className="bg-[#090B0E] p-4 rounded-lg border border-[#2D3139] flex justify-between">
-              <div>
-                <label className="text-white font-semibold">{t('settings.showNewlinesDefault')}</label>
-                <p className="text-[11px] text-[#64748B] mt-0.5">{t('settings.showNewlinesDesc')}</p>
-              </div>
-              <button
-                onClick={() => setLocalSettings({ ...localSettings, showNewlinesVisible: !localSettings.showNewlinesVisible })}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${localSettings.showNewlinesVisible ? 'bg-[#3B82F6]' : 'bg-[#2D3139]'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${localSettings.showNewlinesVisible ? 'translate-x-4' : 'translate-x-1'}`} />
-              </button>
-            </div>
+            <SettingToggleRow
+              icon={<Eye className="w-4 h-4 text-[#4ADE80]" />}
+              title={t('settings.showNewlinesDefault')}
+              description={t('settings.showNewlinesDesc')}
+              checked={localSettings.showNewlinesVisible}
+              onChange={(checked) => setLocalSettings({ ...localSettings, showNewlinesVisible: checked })}
+            />
           </div>
         )}
 
@@ -267,11 +248,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <button
                   key={lang.code}
                   onClick={() => setUiLanguage(lang.code as UiLanguage)}
-                  className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition-all ${
-                    currentUiLang === lang.code
-                      ? 'bg-[#1E293B] border-[#3B82F6] text-white shadow-xs'
-                      : 'bg-[#16191E] border-[#2D3139] text-[#94A3B8] hover:bg-[#1C2128]'
-                  }`}
+                  className={`flex items-center justify-between p-3 rounded-lg border text-xs cursor-pointer transition-all ${currentUiLang === lang.code
+                    ? 'bg-[#1E293B] border-[#3B82F6] text-white shadow-xs'
+                    : 'bg-[#16191E] border-[#2D3139] text-[#94A3B8] hover:bg-[#1C2128]'
+                    }`}
                 >
                   <div className="flex gap-2.5">
                     <span className="text-lg">{lang.flag}</span>
@@ -314,9 +294,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <button
                     key={preset}
                     onClick={() => setLocalSettings({ ...localSettings, fuzzyMatchingThreshold: preset })}
-                    className={`px-2 py-1 rounded text-[10px] font-mono transition-all cursor-pointer ${
-                      localSettings.fuzzyMatchingThreshold === preset ? 'bg-[#3B82F6] text-white font-bold' : 'bg-[#16191E] text-[#94A3B8] border border-[#2D3139]'
-                    }`}
+                    className={`px-2 py-1 rounded text-[10px] font-mono transition-all cursor-pointer ${localSettings.fuzzyMatchingThreshold === preset ? 'bg-[#3B82F6] text-white font-bold' : 'bg-[#16191E] text-[#94A3B8] border border-[#2D3139]'
+                      }`}
                   >
                     {preset}%
                   </button>
@@ -324,18 +303,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
             </div>
 
-            <div className="bg-[#090B0E] p-4 rounded-lg border border-[#2D3139] flex justify-between">
-              <div>
-                <label className="text-white font-medium text-xs">{t('settings.autoMarkFuzzy')}</label>
-                <p className="text-[11px] text-[#64748B] mt-0.5">{t('settings.autoMarkFuzzyDesc')}</p>
-              </div>
-              <button
-                onClick={() => setLocalSettings({ ...localSettings, autoMarkFuzzyUnder100: !localSettings.autoMarkFuzzyUnder100 })}
-                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${localSettings.autoMarkFuzzyUnder100 ? 'bg-[#3B82F6]' : 'bg-[#2D3139]'}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${localSettings.autoMarkFuzzyUnder100 ? 'translate-x-4' : 'translate-x-1'}`} />
-              </button>
-            </div>
+            <SettingToggleRow
+              icon={<ShieldCheck className="w-4 h-4 text-[#F59E0B]" />}
+              title={t('settings.autoMarkFuzzy')}
+              description={t('settings.autoMarkFuzzyDesc')}
+              checked={localSettings.autoMarkFuzzyUnder100}
+              onChange={(checked) => setLocalSettings({ ...localSettings, autoMarkFuzzyUnder100: checked })}
+            />
           </div>
         )}
 

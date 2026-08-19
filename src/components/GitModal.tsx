@@ -627,7 +627,7 @@ export const GitModal: React.FC<GitModalProps> = ({
                         title={t('git.revertSelectedTooltip')}
                       >
                         <RotateCcw className="w-3 h-3" />
-                        <span>Revert</span>
+                        <span>{t('git.revert')}</span>
                       </button>
                     </div>
                   )}
@@ -647,9 +647,9 @@ export const GitModal: React.FC<GitModalProps> = ({
                     <DiffLines diffText={workingDiff} />
                   ) : (
                     <div className="h-full flex flex-col items-center justify-center text-center gap-2 text-[#64748B] text-xs px-8">
-                      <span>{t('git.noWorkingDiff')}</span>
+                      <span>{t('git.noDiffHead')}</span>
                       {!selectedEntry.staged && (
-                        <span className="text-[11px]">{t('git.untrackedDiffHint')}</span>
+                        <span className="text-[11px]">{t('git.matchSnapshot')}</span>
                       )}
                     </div>
                   )}

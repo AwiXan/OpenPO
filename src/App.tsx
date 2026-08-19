@@ -56,7 +56,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 export default function App() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
-    const savedSession = localStorage.getItem('openpo_session_workspaces');
+    const savedSession = localStorage.getItem('openpot_session_workspaces');
     if (savedSession) {
       try {
         const parsed = JSON.parse(savedSession);
@@ -74,13 +74,13 @@ export default function App() {
   });
 
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(() => {
-    return localStorage.getItem('openpo_session_active_id') || workspaces[0]?.id || '';
+    return localStorage.getItem('openpot_session_active_id') || workspaces[0]?.id || '';
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('openpo_session_workspaces', JSON.stringify(workspaces));
-      localStorage.setItem('openpo_session_active_id', activeWorkspaceId);
+      localStorage.setItem('openpot_session_workspaces', JSON.stringify(workspaces));
+      localStorage.setItem('openpot_session_active_id', activeWorkspaceId);
     } catch (e) {
       console.warn('Workspaces too large for LocalStorage. Please use Folder Sync to persist data.');
     }
@@ -88,13 +88,23 @@ export default function App() {
 
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
-    const saved = localStorage.getItem('openpo_zoom');
+    const saved = localStorage.getItem('openpot_zoom');
     return saved ? parseInt(saved, 10) : 100;
   });
   const [viewMode, setViewMode] = useState<'editor' | 'matrix'>('editor');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+
+  const [hiddenMatrixFiles, setHiddenMatrixFiles] = useState<Set<string>>(new Set());
+  const handleToggleMatrixFile = useCallback((fileId: string) => {
+    setHiddenMatrixFiles((prev) => {
+      const next = new Set(prev);
+      if (next.has(fileId)) next.delete(fileId);
+      else next.add(fileId);
+      return next;
+    });
+  }, []);
 
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'info' | 'success' | 'warning' } | null>(null);
   const { t } = useTranslation();
@@ -149,7 +159,7 @@ export default function App() {
   } = useWorkspaceActions(activeWorkspaceId, currentWorkspace, setWorkspaces, setActiveWorkspaceId, settings, triggerDiskSyncForPo, showToast, t);
 
   useEffect(() => {
-    localStorage.setItem('openpo_zoom', zoomLevel.toString());
+    localStorage.setItem('openpot_zoom', zoomLevel.toString());
     const handleKeyZoom = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.ctrlKey || e.metaKey;
       if (isCmdOrCtrl) {
@@ -448,6 +458,9 @@ export default function App() {
         workspace={currentWorkspace}
         activeFileId={activeFileId}
         onSelectFile={handleSelectFile}
+        viewMode={viewMode} 
+        hiddenMatrixFiles={hiddenMatrixFiles} 
+        onToggleMatrixFile={handleToggleMatrixFile}
         onAddLanguage={() => setIsAddLanguageModalOpen(true)}
         onDownloadPo={(po: PoFileRecord, e) => {
           e.stopPropagation();
@@ -472,15 +485,22 @@ export default function App() {
           onUpdateTranslation={handleMatrixUpdateTranslation}
           showNewlinesVisible={settings.showNewlinesVisible}
           activeEntryId={activePotEntryId}
-          onNavigateToEditor={(potEntryId) => {
+          hiddenMatrixFiles={hiddenMatrixFiles} // 👈 
+          onNavigateToEditor={(potEntryId, poFileId) => {
+            handleSelectFile(poFileId); 
+            
             let targetId = potEntryId;
-            if (!isPotActive && currentPoFile) {
+            if (poFileId !== 'pot' && currentPoFile) {
               const potEntry = currentWorkspace.potFile.entries.find((e) => e.id === potEntryId);
               if (potEntry) {
-                const poMatch = currentPoFile.entries.find((e) => e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || ''));
-                if (poMatch) targetId = poMatch.id;
+                const targetPoFile = currentWorkspace.poFiles.find(p => p.id === poFileId);
+                if (targetPoFile) {
+                  const poMatch = targetPoFile.entries.find((e) => e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || ''));
+                  if (poMatch) targetId = poMatch.id;
+                }
               }
             }
+            
             handleSelectEntry(targetId);
             setViewMode('editor');
           }}

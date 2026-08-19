@@ -17,12 +17,12 @@ export function useFileSystemSync(
   t: (key: string) => string
 ) {
   const [recentFolders, setRecentFolders] = useState<string[]>(() => {
-    const saved = localStorage.getItem('openpo_recents');
+    const saved = localStorage.getItem('openpot_recents');
     return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
-    localStorage.setItem('openpo_recents', JSON.stringify(recentFolders));
+    localStorage.setItem('openpot_recents', JSON.stringify(recentFolders));
   }, [recentFolders]);
 
   const folderInputRef = useRef<HTMLInputElement>(null);

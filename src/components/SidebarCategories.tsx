@@ -73,7 +73,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDraggingSplit) return;
       // Find top offset of sidebar
-      const sidebarEl = document.getElementById('openpo-sidebar-container');
+      const sidebarEl = document.getElementById('openpot-sidebar-container');
       if (!sidebarEl) return;
       const rect = sidebarEl.getBoundingClientRect();
       const relativeY = e.clientY - rect.top - 48; // offset search bar
@@ -337,7 +337,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
 
   return (
     <aside
-      id="openpo-sidebar-container"
+      id="openpot-sidebar-container"
       className="w-full border-r border-[#2D3139] bg-[#16191E] flex flex-col h-full select-none text-[#E2E8F0] overflow-hidden relative"
     >
       {/* 1. Global Message ID & String Search Bar */}

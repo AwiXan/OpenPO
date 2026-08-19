@@ -19,7 +19,7 @@ export const INITIAL_SAMPLE_WORKSPACES: Workspace[] = [
         mimeVersion: '1.0',
         contentType: 'text/plain; charset=UTF-8',
         contentTransferEncoding: '8bit',
-        xGenerator: 'OpenPO',
+        xGenerator: 'OpenPOT',
         rawHeaders: {},
       },
       entries: [],

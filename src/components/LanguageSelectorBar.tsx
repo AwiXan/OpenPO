@@ -19,10 +19,14 @@ interface LanguageSelectorBarProps {
   onDownloadPo: (poFile: PoFileRecord, e: React.MouseEvent) => void;
   onDownloadMo: (poFile: PoFileRecord, e: React.MouseEvent) => void;
   onDeleteLanguage: (poFileId: string, e: React.MouseEvent) => void;
+  viewMode?: 'editor' | 'matrix';
+  hiddenMatrixFiles?: Set<string>;
+  onToggleMatrixFile?: (fileId: string) => void;
 }
 
 export const LanguageSelectorBar: React.FC<LanguageSelectorBarProps> = ({
   workspace,
+  viewMode, hiddenMatrixFiles, onToggleMatrixFile,
   activeFileId,
   onSelectFile,
   onAddLanguage,
@@ -33,7 +37,7 @@ export const LanguageSelectorBar: React.FC<LanguageSelectorBarProps> = ({
   const { t } = useTranslation();
   const isPotActive = activeFileId === 'pot';
   const potTotal = workspace.potFile.entries.length;
-  
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -104,28 +108,36 @@ export const LanguageSelectorBar: React.FC<LanguageSelectorBarProps> = ({
         style={{ scrollbarWidth: 'none' }}
       >
         {/* POT Master Template Tab */}
-        <button
-          data-tab-id="pot"
-          onClick={() => onSelectFile('pot')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs transition-all border cursor-pointer shrink-0 ${
-            isPotActive
-              ? 'bg-[#1E293B] border-[#3B82F6] text-[#E2E8F0] font-semibold shadow-xs'
-              : 'bg-[#090B0E] border-[#2D3139] text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
-          }`}
-          title={t('langBar.potTooltip')}
-        >
-          <FileText className={`w-3.5 h-3.5 ${isPotActive ? 'text-[#3B82F6]' : 'text-[#64748B]'}`} />
-          <span className="font-mono">{workspace.potFile.filename}</span>
-          <span className="px-1.5 py-0.2 rounded bg-[#090B0E] text-[10px] font-mono text-[#94A3B8] border border-[#2D3139]">
-            {potTotal} {t('langBar.keys')}
-          </span>
-        </button>
+        {(() => {
+          const isPotTabActive = viewMode === 'matrix' ? !hiddenMatrixFiles?.has('pot') : isPotActive;
+          return (
+            <button
+              data-tab-id="pot"
+              onClick={() => {
+                if (viewMode === 'matrix' && onToggleMatrixFile) onToggleMatrixFile('pot');
+                else onSelectFile('pot');
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs transition-all border cursor-pointer shrink-0 ${
+                isPotTabActive
+                  ? 'bg-[#1E293B] border-[#3B82F6] text-[#E2E8F0] font-semibold shadow-xs'
+                  : 'bg-[#090B0E] border-[#2D3139] text-[#64748B] hover:bg-[#1C2128] hover:text-[#E2E8F0] opacity-60 hover:opacity-100'
+              }`}
+              title={t('langBar.potTooltip')}
+            >
+              <FileText className={`w-3.5 h-3.5 ${isPotTabActive ? 'text-[#3B82F6]' : 'text-[#64748B]'}`} />
+              <span className="font-mono">{workspace.potFile.filename}</span>
+              <span className="px-1.5 py-0.2 rounded bg-[#090B0E] text-[10px] font-mono text-[#94A3B8] border border-[#2D3139]">
+                {potTotal} {t('langBar.keys')}
+              </span>
+            </button>
+          );
+        })()}
 
         <div className="h-4 w-[1px] bg-[#2D3139] mx-0.5 shrink-0" />
 
         {/* PO Target Language Tabs */}
         {workspace.poFiles.map((po) => {
-          const isActive = activeFileId === po.id;
+          const isPoTabActive = viewMode === 'matrix' ? !hiddenMatrixFiles?.has(po.id) : activeFileId === po.id;
           const total = po.entries.length;
           
           let translated = 0;
@@ -150,11 +162,14 @@ export const LanguageSelectorBar: React.FC<LanguageSelectorBarProps> = ({
             <div
               key={po.id}
               data-tab-id={po.id}
-              onClick={() => onSelectFile(po.id)}
+              onClick={() => {
+                if (viewMode === 'matrix' && onToggleMatrixFile) onToggleMatrixFile(po.id);
+                else onSelectFile(po.id);
+              }}
               className={`group/tab relative flex items-center gap-2 px-2.5 py-1.5 rounded text-xs cursor-pointer transition-all border shrink-0 ${
-                isActive
+                isPoTabActive
                   ? 'bg-[#1E293B] border-[#3B82F6] text-[#E2E8F0] font-semibold shadow-xs'
-                  : 'bg-[#090B0E] border-[#2D3139] text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
+                  : 'bg-[#090B0E] border-[#2D3139] text-[#64748B] hover:bg-[#1C2128] hover:text-[#E2E8F0] opacity-60 hover:opacity-100'
               }`}
             >
               <div className="flex items-center gap-1.5">

@@ -22,7 +22,9 @@ interface MultiLanguageGridViewProps {
   onUpdateTranslation: (poFileId: string, entryId: string, msgstr: string[]) => void;
   showNewlinesVisible?: boolean;
   activeEntryId: string | null;
-  onNavigateToEditor: (entryId: string) => void;
+  hiddenMatrixFiles?: Set<string>;
+  onNavigateToEditor: (entryId: string, poFileId: string) => void;
+
 }
 
 export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
@@ -30,11 +32,13 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
   onUpdateTranslation,
   showNewlinesVisible: initialShowNewlines = true,
   activeEntryId,
+  hiddenMatrixFiles,
   onNavigateToEditor,
 }) => {
   const { t } = useTranslation();
   const potEntries = workspace.potFile.entries;
   const poFiles = workspace.poFiles;
+  const lastFocusedCol = useRef<string | null>(null);
 
   const [showWhitespaceMarks, setShowWhitespaceMarks] = useState<boolean>(initialShowNewlines);
   const [expandAllRows, setExpandAllRows] = useState<boolean>(false);
@@ -80,7 +84,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
       return a.localeCompare(b);
     });
   }, [potEntries]);
-  
+
   useEffect(() => {
     if (activeEntryId) {
       if (groupByCategory) {
@@ -104,29 +108,35 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           row.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
+        if (lastFocusedCol.current) {
+          const taKey = `${lastFocusedCol.current}_${activeEntryId}_0`;
+          const ta = textareaRefs.current.get(taKey);
+          if (ta) {
+            ta.focus();
+            const valLen = ta.value.length;
+            ta.setSelectionRange(valLen, valLen);
+          }
+        }
+
         if (workspace.activeFileId) {
           const targetColClass = workspace.activeFileId === 'pot' ? 'matrix-col-pot' : `matrix-col-${workspace.activeFileId}`;
           const colCells = document.querySelectorAll(`.${targetColClass}`);
-          
+
           colCells.forEach((cell) => {
-            cell.classList.add('!bg-[#3B82F620]'); 
-            setTimeout(() => {
-              cell.classList.remove('!bg-[#3B82F620]');
-            }, 2000);
+            cell.classList.add('!bg-[#3B82F620]');
+            setTimeout(() => cell.classList.remove('!bg-[#3B82F620]'), 1000);
           });
 
           const activeCell = document.getElementById(`matrix-cell-${activeEntryId}-${workspace.activeFileId}`);
           if (activeCell) {
             activeCell.classList.add('!bg-[#3B82F640]');
-            setTimeout(() => {
-              activeCell.classList.remove('!bg-[#3B82F640]');
-            }, 1000);
+            setTimeout(() => activeCell.classList.remove('!bg-[#3B82F640]'), 1000);
           }
         }
       }, 150);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeEntryId]);
 
   const toggleCategory = (catName: string) => {
     setCollapsedCategories((prev) => {
@@ -179,37 +189,48 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
         className="border-b border-[#16191E] hover:bg-[#5070a320] transition-colors duration-500"
       >
         {/* Source Column */}
-        <td 
-          id={`matrix-cell-${potEntry.id}-pot`}
-          className="matrix-col-pot p-3 border-r border-[#2D3139] bg-[#090B0E] align-top w-80 transition-colors duration-700"
-        >
-          <div className="flex items-start justify-between gap-1 mb-1">
-            <div className="font-semibold text-[#E2E8F0] select-text break-words whitespace-pre-wrap leading-relaxed">
-              {potEntry.msgid}
+        {!hiddenMatrixFiles?.has('pot') && (
+          <td id={`matrix-cell-${potEntry.id}-pot`} className="matrix-col-pot p-3 border-r border-[#2D3139] bg-[#090B0E] align-top w-80 transition-colors duration-700">
+            <div className="flex items-start justify-between gap-1 mb-1">
+              <div className="font-semibold text-[#E2E8F0] select-text break-words whitespace-pre-wrap leading-relaxed">
+                {potEntry.msgid}
+              </div>
+              
+              <div className="flex items-center gap-1 shrink-0">
+                {showWhitespaceMarks && hasNewlines && (
+                  <span
+                    className="px-1 py-0.2 rounded bg-[#3B82F622] text-[#38BDF8] border border-[#3B82F644] text-[9px] font-mono select-none"
+                    title={`${newlineCount} newlines in source key`}
+                  >
+                    ↵ {newlineCount}\n
+                  </span>
+                )}
+                <button
+                  onClick={() => onNavigateToEditor(potEntry.id, 'pot')}
+                  className="p-1 rounded bg-[#16191E] hover:bg-[#1E293B] text-[#64748B] hover:text-[#38BDF8] border border-[#2D3139] transition-colors cursor-pointer"
+                  title={t('matrix.toEditor')}
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-            {showWhitespaceMarks && hasNewlines && (
-              <span
-                className="shrink-0 px-1 py-0.2 rounded bg-[#3B82F622] text-[#38BDF8] border border-[#3B82F644] text-[9px] font-mono select-none"
-                title={`${newlineCount} newlines in source key`}
-              >
-                ↵ {newlineCount}\n
-              </span>
+            
+            {potEntry.msgidPlural && (
+              <div className="text-[10px] text-[#3B82F6] mt-1 whitespace-pre-wrap">
+                Plural: {potEntry.msgidPlural}
+              </div>
             )}
-          </div>
-          {potEntry.msgidPlural && (
-            <div className="text-[10px] text-[#3B82F6] mt-1 whitespace-pre-wrap">
-              Plural: {potEntry.msgidPlural}
-            </div>
-          )}
-          {potEntry.comments.length > 0 && (
-            <div className="text-[10px] text-[#64748B] font-sans italic mt-1 truncate">
-              {potEntry.comments[0]}
-            </div>
-          )}
-        </td>
+            
+            {potEntry.comments.length > 0 && (
+              <div className="text-[10px] text-[#64748B] font-sans italic mt-1 truncate">
+                {potEntry.comments[0]}
+              </div>
+            )}
+          </td>
+        )}
 
         {/* Language Input Columns */}
-        {poFiles.map((po) => {
+        {poFiles.filter(po => !hiddenMatrixFiles?.has(po.id)).map((po) => {
           const poEntry = po.entries.find(
             (e) => e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || '')
           ) || po.entries.find((e) => e.id === potEntry.id);
@@ -218,8 +239,8 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           const isFuzzy = poEntry?.flags.includes('fuzzy');
 
           return (
-            <td 
-              key={po.id} 
+            <td
+              key={po.id}
               id={`matrix-cell-${potEntry.id}-${po.id}`}
               className={`matrix-col-${po.id} p-2.5 border-r border-[#2D3139] align-top bg-[#090B0E] transition-colors duration-700`}
             >
@@ -239,6 +260,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
 
                         <div className="flex-1 relative">
                           <textarea
+                            onFocus={() => lastFocusedCol.current = po.id}
                             ref={(el) => setTextareaRef(refKey, el)}
                             rows={expandAllRows ? 3 : 2}
                             value={strVal}
@@ -270,7 +292,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
 
                         {/* To Editor */}
                         <button
-                          onClick={() => onNavigateToEditor(potEntry.id)}
+                          onClick={() => onNavigateToEditor(potEntry.id, po.id)}
                           className="p-1 rounded bg-[#16191E] hover:bg-[#1E293B] text-[#64748B] hover:text-[#38BDF8] border border-[#2D3139] transition-colors cursor-pointer shrink-0 mt-0.5"
                           title={t('matrix.toEditor')}
                         >
@@ -309,8 +331,8 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           <button
             onClick={() => setGroupByCategory(!groupByCategory)}
             className={`px-2.5 py-1.5 rounded text-xs flex items-center gap-1.5 border transition-all cursor-pointer ${groupByCategory
-                ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6] font-medium shadow-xs'
-                : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
+              ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6] font-medium shadow-xs'
+              : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
               }`}
             title="Group strings by category in the matrix"
           >
@@ -373,8 +395,8 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           <button
             onClick={() => setShowWhitespaceMarks(!showWhitespaceMarks)}
             className={`px-2.5 py-1.5 rounded text-xs border transition-all flex items-center gap-1.5 cursor-pointer ${showWhitespaceMarks
-                ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6] font-medium shadow-xs'
-                : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
+              ? 'bg-[#1E293B] text-[#38BDF8] border-[#3B82F6] font-medium shadow-xs'
+              : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
               }`}
             title="Toggle visible \n newline markers"
           >
@@ -386,8 +408,8 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           <button
             onClick={() => setExpandAllRows(!expandAllRows)}
             className={`px-2.5 py-1.5 rounded text-xs border transition-all flex items-center gap-1.5 cursor-pointer ${expandAllRows
-                ? 'bg-[#1E293B] text-[#4ADE80] border-[#4ADE80] font-medium shadow-xs'
-                : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
+              ? 'bg-[#1E293B] text-[#4ADE80] border-[#4ADE80] font-medium shadow-xs'
+              : 'bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] border-[#2D3139]'
               }`}
             title="Toggle expanded multiline rows"
           >
@@ -407,12 +429,14 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           <thead className="sticky top-0 bg-[#16191E] border-b border-[#2D3139] text-[10px] font-bold text-[#64748B] uppercase tracking-wider z-20 shadow-sm">
             <tr>
               {/* Header POT */}
-              <th className="matrix-col-pot p-3 w-80 border-r border-[#2D3139] bg-[#16191E] transition-colors duration-700">
-                {t('matrix.sourceCol')} ({workspace.potFile.filename})
-              </th>
-              
+              {!hiddenMatrixFiles?.has('pot') && (
+                <th className="matrix-col-pot p-3 w-80 border-r border-[#2D3139] bg-[#16191E] transition-colors duration-700">
+                  {t('matrix.sourceCol')} ({workspace.potFile.filename})
+                </th>
+              )}
+
               {/* Header PO */}
-              {poFiles.map((po) => (
+              {poFiles.filter(po => !hiddenMatrixFiles?.has(po.id)).map((po) => (
                 <th
                   key={po.id}
                   className={`matrix-col-${po.id} p-3 min-w-[280px] border-r border-[#2D3139] bg-[#16191E] transition-colors duration-700`}

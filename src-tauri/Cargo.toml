@@ -1,7 +1,7 @@
 [package]
-name = "OpenPO"
+name = "OpenPOT"
 version = "0.1.2"
-description = "Modular PO Editing Studio"
+description = "Modular POT and PO Editing Studio"
 authors = ["AwiXan"]
 license = ""
 repository = ""

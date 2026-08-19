@@ -175,13 +175,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         className="h-9 px-3 flex items-center justify-between border-b border-[#2D3139] text-xs bg-[#090B0E] relative z-40"
       >
         <div className="flex items-center space-x-2.5">
-          {/* App Branding */}
-          <div className="flex items-center space-x-1.5 font-medium text-[#E2E8F0] pr-2">
-            <span className="tracking-tight font-semibold text-xs text-white">OpenPO</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#1C2128] text-[#38BDF8] border border-[#2D3139] font-mono">
-              v1.2
-            </span>
-          </div>
 
           {/* Desktop Menu Bar (File, Edit, View, Tools, Language, Help) */}
           <nav className="flex items-center space-x-0.5 text-xs text-[#94A3B8]">
