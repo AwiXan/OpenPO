@@ -270,7 +270,6 @@ export function useWorkspaceActions(
         const scheme = settings.poNamingScheme || 'domain_lang';
         const filename = formatPoFilename(domain, langCode, scheme);
         
-        // 👇 Оставляем ТОЛЬКО этот обновленный poHeader
         const poHeader: PoHeader = { 
           projectIdVersion: w.potFile.header.projectIdVersion || `${w.name} 1.0`, 
           language: langCode, 
