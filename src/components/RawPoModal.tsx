@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Code2, Copy, Check, Download, AlertCircle, Save } from 'lucide-react';
-import { PoHeader, PoEntry } from '../types/gettext';
+import { Code2, Copy, Check, AlertCircle, Save } from 'lucide-react';
+import { PoHeader, PoEntry, Workspace } from '../types/gettext';
 import { serializePoFile, parsePoContent } from '../lib/poParser';
+import { JsonFormat, serializeTranslationsCsv, serializeTranslationsJson } from '../lib/translationFormats';
 import { useTranslation } from '../lib/i18n';
 import { Modal } from './ui/Modal';
+import { DropdownMenu } from './ui/DropdownMenu';
 
 interface RawPoModalProps {
   isOpen: boolean;
@@ -13,6 +15,8 @@ interface RawPoModalProps {
   entries: PoEntry[];
   isPot?: boolean;
   onSaveRaw: (header: PoHeader, entries: PoEntry[]) => void;
+  workspace: Workspace;
+  csvPluralSuffix?: string;
 }
 
 export const RawPoModal: React.FC<RawPoModalProps> = ({
@@ -23,7 +27,11 @@ export const RawPoModal: React.FC<RawPoModalProps> = ({
   entries,
   isPot = false,
   onSaveRaw,
+  workspace,
+  csvPluralSuffix = '_P%d',
 }) => {
+  const [format, setFormat] = useState<'po' | 'json' | 'csv'>('po');
+  const [jsonFormat, setJsonFormat] = useState<JsonFormat>('key-first');
   const [rawText, setRawText] = useState('');
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
@@ -31,11 +39,24 @@ export const RawPoModal: React.FC<RawPoModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const text = serializePoFile(header, entries, isPot);
-      setRawText(text);
+      setFormat('po');
+      setRawText(serializePoFile(header, entries, isPot));
       setParseError(null);
     }
   }, [header, entries, isPot, isOpen]);
+
+  const switchFormat = (nextFormat: 'po' | 'json' | 'csv') => {
+    setFormat(nextFormat);
+    if (nextFormat === 'po') setRawText(serializePoFile(header, entries, isPot));
+    if (nextFormat === 'csv') setRawText(serializeTranslationsCsv(workspace, csvPluralSuffix));
+    if (nextFormat === 'json') setRawText(serializeTranslationsJson(workspace, csvPluralSuffix, jsonFormat));
+    setParseError(null);
+  };
+
+  const switchJsonFormat = (nextFormat: JsonFormat) => {
+    setJsonFormat(nextFormat);
+    setRawText(serializeTranslationsJson(workspace, csvPluralSuffix, nextFormat));
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(rawText);
@@ -44,6 +65,7 @@ export const RawPoModal: React.FC<RawPoModalProps> = ({
   };
 
   const handleSave = () => {
+    if (format !== 'po') return;
     try {
       const parsed = parsePoContent(rawText);
       onSaveRaw(parsed.header, parsed.entries);
@@ -53,20 +75,10 @@ export const RawPoModal: React.FC<RawPoModalProps> = ({
     }
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([rawText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const modalFooter = (
     <div className="w-full flex items-center justify-between text-xs">
       <span className="text-[#64748B] text-[11px] hidden sm:inline">
-        {t('rawPo.hint')}
+          {format === 'po' ? t('rawPo.hint') : t('rawPo.previewHint')}
       </span>
 
       <div className="flex items-center gap-2">
@@ -76,13 +88,13 @@ export const RawPoModal: React.FC<RawPoModalProps> = ({
         >
           {t('common.cancel')}
         </button>
-        <button
+        {format === 'po' && <button
           onClick={handleSave}
           className="px-4 py-1.5 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold flex items-center gap-1.5 shadow-lg shadow-blue-500/20 cursor-pointer transition-all"
         >
           <Save className="w-3.5 h-3.5" />
           <span>{t('rawPo.save')}</span>
-        </button>
+        </button>}
       </div>
     </div>
   );
@@ -91,14 +103,24 @@ export const RawPoModal: React.FC<RawPoModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Raw Gettext Source: ${filename}`}
+      title={`${t('rawPo.title')}: ${filename}`}
       subtitle={t('rawPo.subtitle').replace('${count}', entries.length.toString())}
       icon={<Code2 className="w-4 h-4" />}
       maxWidth="max-w-4xl"
       footer={modalFooter}
     >
       <div className="space-y-3 flex flex-col w-full">
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1 rounded border border-[#2D3139] bg-[#090B0E] p-0.5">
+            {(['po', 'json', 'csv'] as const).map((option) => (
+              <button key={option} onClick={() => switchFormat(option)} className={`px-2.5 py-1 text-xs rounded cursor-pointer ${format === option ? 'bg-[#1E293B] text-white' : 'text-[#94A3B8] hover:text-white'}`}>
+                {option === 'po' ? 'PO' : option.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          {format === 'json' && (
+            <DropdownMenu value={jsonFormat} onChange={switchJsonFormat} options={[{ value: 'key-first', label: t('transfer.jsonKeyFirst') }, { value: 'language-first', label: t('transfer.jsonLanguageFirst') }]} className="min-w-[170px]" />
+          )}
           <button
             onClick={handleCopy}
             className="px-2.5 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-xs text-[#94A3B8] hover:text-[#E2E8F0] flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
@@ -107,21 +129,16 @@ export const RawPoModal: React.FC<RawPoModalProps> = ({
             <span>{copied ? t('editor.copied') : t('editor.copy')}</span>
           </button>
 
-          <button
-            onClick={handleDownload}
-            className="px-2.5 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-xs text-[#94A3B8] hover:text-[#E2E8F0] flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
-          >
-            <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
-            <span>{t('rawPo.download')}</span>
-          </button>
         </div>
 
         <textarea
           value={rawText}
           onChange={(e) => {
+            if (format !== 'po') return;
             setRawText(e.target.value);
             setParseError(null);
           }}
+          readOnly={format !== 'po'}
           spellCheck={false}
           className="w-full min-h-[50vh] bg-[#090B0E] border border-[#2D3139] rounded p-3.5 text-xs font-mono text-[#E2E8F0] placeholder-[#64748B] focus:border-[#3B82F6] outline-none resize-y leading-relaxed select-text custom-scrollbar"
         />

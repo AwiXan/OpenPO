@@ -159,6 +159,7 @@ export interface AppSettings {
   autoCompileCsvOnSave?: boolean;
   autoCompileJsonOnSave?: boolean;
   csvPluralSuffix?: string;
+  autoGenerateCategories?: boolean;
 }
 
 export interface WorkspaceSnapshot {

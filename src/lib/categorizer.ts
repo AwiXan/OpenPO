@@ -43,7 +43,7 @@ export function normalizeCategoryPath(raw: string): string {
 /**
  * Parses key or entry metadata to extract a multi-level hierarchical category path
  */
-export function deriveCategoryPath(entry: PoEntry): string[] {
+export function deriveCategoryPath(entry: PoEntry, autoGenerate = true): string[] {
   // 1. If entry already has explicit category set
   if (entry.category && entry.category.trim()) {
     return parseCategoryPath(entry.category);
@@ -68,6 +68,8 @@ export function deriveCategoryPath(entry: PoEntry): string[] {
       }
     }
   }
+
+  if (!autoGenerate) return ['General'];
 
   // 4. Context msgctxt path
   if (entry.msgctxt && entry.msgctxt.trim()) {
@@ -135,8 +137,8 @@ export function deriveCategoryPath(entry: PoEntry): string[] {
   return ['General'];
 }
 
-export function deriveCategory(entry: PoEntry): string {
-  const path = deriveCategoryPath(entry);
+export function deriveCategory(entry: PoEntry, autoGenerate = true): string {
+  const path = deriveCategoryPath(entry, autoGenerate);
   return path.join(' / ');
 }
 
@@ -156,7 +158,8 @@ function formatWord(str: string): string {
 export function buildCategoryTree(
   entries: PoEntry[],
   issuesMap: Map<string, number> = new Map(),
-  customCategories: string[] = []
+  customCategories: string[] = [],
+  autoGenerate = true
 ): {
   tree: CategoryNode[];
   allGroups: CategoryGroup[];
@@ -237,7 +240,7 @@ export function buildCategoryTree(
 
   // 2. Add entries
   for (const entry of entries) {
-    const path = deriveCategoryPath(entry);
+    const path = deriveCategoryPath(entry, autoGenerate);
     const isUntranslated =
       entry.msgstr.length === 0 || entry.msgstr.every((s) => !s || s.trim() === '');
     const isFuzzy = entry.flags.includes('fuzzy');

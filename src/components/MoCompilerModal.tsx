@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Binary, Download, ShieldCheck, FileArchive } from 'lucide-react';
+import { Binary, ShieldCheck, Download, FolderSync } from 'lucide-react';
 import { Workspace, PoFileRecord } from '../types/gettext';
 import { compileMoBinary } from '../lib/moCompiler';
 import { Modal } from './ui/Modal';
@@ -9,12 +9,16 @@ interface MoCompilerModalProps {
   isOpen: boolean;
   onClose: () => void;
   workspace: Workspace;
+  hasConnectedFolder?: boolean;
+  onExportMo: (po: PoFileRecord, useConnectedFolder?: boolean) => Promise<void>;
 }
 
 export const MoCompilerModal: React.FC<MoCompilerModalProps> = ({
   isOpen,
   onClose,
   workspace,
+  hasConnectedFolder = false,
+  onExportMo,
 }) => {
   const { t } = useTranslation();
   const [selectedPoId, setSelectedPoId] = useState<string>(
@@ -22,24 +26,6 @@ export const MoCompilerModal: React.FC<MoCompilerModalProps> = ({
   );
 
   const selectedPo = workspace.poFiles.find((p) => p.id === selectedPoId) || workspace.poFiles[0];
-
-  const handleDownloadMo = (po: PoFileRecord) => {
-    const binary = compileMoBinary(po.header, po.entries);
-    const moFilename = po.filename.replace(/\.po$/, '.mo');
-    const blob = new Blob([binary], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = moFilename;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleDownloadAllMo = () => {
-    workspace.poFiles.forEach((po) => {
-      handleDownloadMo(po);
-    });
-  };
 
   const modalFooter = (
     <div className="w-full flex items-center justify-between">
@@ -49,14 +35,21 @@ export const MoCompilerModal: React.FC<MoCompilerModalProps> = ({
       >
         {t('common.close')}
       </button>
-
-      <button
-        onClick={handleDownloadAllMo}
+      {selectedPo && <button
+        onClick={() => onExportMo(selectedPo)}
         className="px-4 py-1.5 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold flex items-center gap-1.5 shadow-lg shadow-blue-500/20 cursor-pointer transition-colors"
       >
-        <FileArchive className="w-3.5 h-3.5" />
-        <span>{t('moCompiler.downloadAll')}</span>
-      </button>
+        <Download className="w-3.5 h-3.5" />
+        <span>{t('moCompiler.export')}</span>
+      </button>}
+      {selectedPo && hasConnectedFolder && <button
+        onClick={() => onExportMo(selectedPo, true)}
+        className="px-3 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-white border border-[#2D3139] flex items-center gap-1.5 cursor-pointer transition-colors"
+      >
+        <FolderSync className="w-3.5 h-3.5 text-[#4ADE80]" />
+        <span>{t('moCompiler.exportToFolder')}</span>
+      </button>}
+
     </div>
   );
 
@@ -121,13 +114,6 @@ export const MoCompilerModal: React.FC<MoCompilerModalProps> = ({
                 </div>
               </div>
 
-              <button
-                onClick={() => handleDownloadMo(selectedPo)}
-                className="px-3 py-1.5 rounded bg-[#3B82F6] hover:bg-[#2563EB] text-white font-semibold flex items-center gap-1.5 transition-colors shadow-md shadow-blue-500/10 cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>{t('moCompiler.download')}</span>
-              </button>
             </div>
 
             <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#2D3139] text-[#E2E8F0]">

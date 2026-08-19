@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
   Layers,
@@ -17,6 +17,7 @@ import {
   Sparkles,
   GripHorizontal,
   Plus,
+  KeyRound,
   Check,
   MoreVertical,
 } from 'lucide-react';
@@ -42,6 +43,7 @@ interface SidebarCategoriesProps {
   };
   onAddCategory?: (categoryPath: string) => void;
   onAssignActiveEntryToCategory?: (categoryFullPath: string) => void;
+  onCreateKeyInCategory?: (categoryFullPath: string) => void;
   activeEntryId?: string | null;
 }
 
@@ -56,6 +58,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
   stats,
   onAddCategory,
   onAssignActiveEntryToCategory,
+  onCreateKeyInCategory,
   activeEntryId,
 }) => {
   const { t } = useTranslation();
@@ -63,6 +66,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
   // Vertical split height for status filters vs nested categories
   const [statusFiltersHeight, setStatusFiltersHeight] = useState<number>(205);
   const [isDraggingSplit, setIsDraggingSplit] = useState(false);
+  const statusFiltersRef = useRef<HTMLDivElement>(null);
 
   // New Category Prompt State
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -72,12 +76,12 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDraggingSplit) return;
-      // Find top offset of sidebar
+      const filterRect = statusFiltersRef.current?.getBoundingClientRect();
       const sidebarEl = document.getElementById('openpot-sidebar-container');
-      if (!sidebarEl) return;
-      const rect = sidebarEl.getBoundingClientRect();
-      const relativeY = e.clientY - rect.top - 48; // offset search bar
-      const clampedHeight = Math.max(90, Math.min(420, relativeY));
+      if (!filterRect || !sidebarEl) return;
+      const sidebarRect = sidebarEl.getBoundingClientRect();
+      const maxHeight = Math.max(90, sidebarRect.bottom - filterRect.top - 120);
+      const clampedHeight = Math.max(90, Math.min(maxHeight, e.clientY - filterRect.top));
       setStatusFiltersHeight(clampedHeight);
     };
 
@@ -268,6 +272,17 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
               <Plus className="w-3 h-3" />
             </button>
 
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onCreateKeyInCategory?.(node.fullPath);
+              }}
+              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-[#2D3748] rounded text-[#64748B] hover:text-[#4ADE80] transition-opacity"
+              title={`${t('category.createKey')}: ${node.fullPath}`}
+            >
+              <KeyRound className="w-3 h-3" />
+            </button>
+
             {/* Quick Assign active string to this category */}
             {activeEntryId && onAssignActiveEntryToCategory && (
               <button
@@ -366,6 +381,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
 
       {/* 2. Quick Status Filters (Resizable Vertical Section) */}
       <div
+        ref={statusFiltersRef}
         style={{ height: `${statusFiltersHeight}px`, minHeight: '90px' }}
         className="p-2.5 overflow-y-auto space-y-1 bg-[#16191E] shrink-0 custom-scrollbar"
       >

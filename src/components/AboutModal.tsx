@@ -2,6 +2,7 @@ import React from 'react';
 import {
   MessageCircleWarning,
   FileSpreadsheet,
+  FileJson,
   GitBranch,
   FolderSync,
   Hash,
@@ -37,7 +38,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         className="px-3 py-1.5 rounded-lg bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] text-xs flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
       >
         <Sliders className="w-3.5 h-3.5" />
-        <span>{t('settings.title', 'Preferences & Settings')}</span>
+        <span>{t('settings.title')}</span>
       </button>
 
       <button
@@ -45,7 +46,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         onClick={onClose}
         className="px-4 py-1.5 rounded-lg bg-[#3B82F6] hover:bg-[#2563EB] text-white text-xs font-semibold shadow-md shadow-blue-500/10 transition-all cursor-pointer"
       >
-        {t('common.close', 'Close')}
+        {t('common.close')}
       </button>
     </div>
   );
@@ -64,7 +65,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={modalTitle as any}
-      subtitle={t('about.subtitle', 'Modern Professional GNU gettext (.po / .pot / .mo) Localization Suite')}
+      subtitle={t('about.subtitle')}
       icon={
         <img 
           src="/icons/128x128.png" 
@@ -84,13 +85,13 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             </div>
             <div className="space-y-1.5 text-left">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-xs">{t('about.vibecodedTitle', 'Vibecoded with AwiXan')}</span>
+                <span className="font-bold text-white text-xs">{t('about.vibecodedTitle')}</span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">
-                  {t('about.aiCraft', '100% AI Craft')}
+                  {t('about.aiCraft')}
                 </span>
               </div>
               <p className="text-[#CBD5E1] text-xs leading-relaxed italic">
-                "{t('about.vibecodedNote', 'This app is 100% vibecoded asf')}"
+                "{t('about.vibecodedNote')}"
               </p>
             </div>
           </div>
@@ -100,16 +101,16 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         <div className="space-y-2.5">
           <h3 className="text-xs font-bold text-white tracking-wide flex items-center gap-1.5 uppercase text-[10px] text-[#64748B]">
             <ShieldCheck className="w-3.5 h-3.5 text-[#38BDF8]" />
-            <span>{t('about.coreFeatures', 'Core Features')}</span>
+                <span>{t('about.coreFeatures')}</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <Binary className="w-4 h-4 text-[#38BDF8] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white text-xs">{t('about.featureMoTitle', 'GNU gettext PO & MO')}</div>
+                <div className="font-semibold text-white text-xs">{t('about.featureMoTitle')}</div>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
-                  {t('about.featureMoDesc', 'Full parser, formatter, and instantaneous browser-side binary .mo compiler.')}
+                  {t('about.featureMoDesc')}
                 </p>
               </div>
             </div>
@@ -117,19 +118,26 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <FileSpreadsheet className="w-4 h-4 text-[#4ADE80] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white text-xs">{t('about.featureMatrixTitle', 'Multi-Language Matrix')}</div>
+                <div className="font-semibold text-white text-xs">{t('about.featureMatrixTitle')}</div>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
-                  {t('about.featureMatrixDesc', 'Side-by-side editing across all locales with inline newline badges and smart shortcuts.')}
+                  {t('about.featureMatrixDesc')}
                 </p>
               </div>
             </div>
+              <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
+                <FileJson className="w-4 h-4 text-[#FBBF24] shrink-0 mt-0.5" />
+                <div>
+                  <div className="font-semibold text-white text-xs">{t('about.featureFormatsTitle')}</div>
+                  <p className="text-[11px] text-[#64748B] mt-0.5">{t('about.featureFormatsDesc')}</p>
+                </div>
+              </div>
 
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <GitBranch className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white text-xs">{t('about.featureGitTitle', 'In-Memory Git DAG')}</div>
+                <div className="font-semibold text-white text-xs">{t('about.featureGitTitle')}</div>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
-                  {t('about.featureGitDesc', 'Isolated version control tracking commits, staging, file logs, and per-key diffs.')}
+                  {t('about.featureGitDesc')}
                 </p>
               </div>
             </div>
@@ -137,9 +145,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <MessageCircleWarning className="w-4 h-4 text-[#EC4899] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white text-xs">{t('about.featureTmTitle', 'Translation Memory (TM)')}</div>
+                <div className="font-semibold text-white text-xs">{t('about.featureTmTitle')}</div>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
-                  {t('about.featureTmDesc', 'Real-time Levenshtein similarity engine with batch auto-fill and fuzzy protection.')}
+                  {t('about.featureTmDesc')}
                 </p>
               </div>
             </div>
@@ -147,9 +155,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <FolderSync className="w-4 h-4 text-[#8B5CF6] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white text-xs">{t('about.featureFolderTitle', 'Folder & Disk Sync')}</div>
+                <div className="font-semibold text-white text-xs">{t('about.featureFolderTitle')}</div>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
-                  {t('about.featureFolderDesc', 'Seamless local folder scanner, automatic .mo emission, and one-click ZIP packaging.')}
+                  {t('about.featureFolderDesc')}
                 </p>
               </div>
             </div>
@@ -157,9 +165,9 @@ export const AboutModal: React.FC<AboutModalProps> = ({
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <Hash className="w-4 h-4 text-[#06B6D4] shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-white text-xs">{t('about.featurePluralTitle', 'Plural Forms Engine')}</div>
+                <div className="font-semibold text-white text-xs">{t('about.featurePluralTitle')}</div>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
-                  {t('about.featurePluralDesc', 'Interactive nplurals tester supporting Slavic, Germanic, Romance, and CJK plural rules.')}
+                  {t('about.featurePluralDesc')}
                 </p>
               </div>
             </div>
@@ -169,13 +177,13 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         {/* Technical Specs Footer */}
         <div className="p-3 bg-[#090B0E] rounded-lg border border-[#2D3139] flex items-center justify-between text-[11px] text-[#64748B]">
           <div className="flex items-center gap-1.5">
-            <span>{t('about.engineName', 'OpenPOT Localization Engine')}</span>
+            <span>{t('about.engineName')}</span>
             <span>•</span>
             <span className="font-mono text-[#94A3B8]">v1.2</span>
           </div>
           <div className="flex items-center gap-1 text-[#38BDF8]">
             <Heart className="w-3 h-3 fill-current text-rose-400" />
-            <span>{t('about.footerTagline', 'Created for fast game & app translations')}</span>
+            <span>{t('about.footerTagline')}</span>
           </div>
         </div>
       </div>

@@ -73,6 +73,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       autoCompileCsvOnSave: false,
       autoCompileJsonOnSave: false,
       csvPluralSuffix: '_P%d',
+      autoGenerateCategories: true,
     };
     setLocalSettings(defaults);
   };
@@ -220,9 +221,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
 
               <SettingToggleRow
+                icon={<FolderSync className="w-4 h-4 text-[#38BDF8]" />}
+                title={t('settings.autoCategoriesTitle')}
+                description={t('settings.autoCategoriesDesc')}
+                checked={localSettings.autoGenerateCategories ?? true}
+                onChange={(checked) => setLocalSettings({ ...localSettings, autoGenerateCategories: checked })}
+              />
+
+              <SettingToggleRow
                 icon={<FileJson className="w-4 h-4 text-[#FBBF24]" />}
-                title={t('settings.autoJsonTitle', 'Auto-export to JSON')}
-                description={t('settings.autoJsonDesc', 'Generate flat key-value .json files alongside your .po catalogs.')}
+                title={t('settings.autoJsonTitle')}
+                description={t('settings.autoJsonDesc')}
                 checked={localSettings.autoCompileJsonOnSave ?? false}
                 onChange={(checked) => setLocalSettings({ ...localSettings, autoCompileJsonOnSave: checked })}
               />
@@ -232,10 +241,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div>
                     <label className="text-white font-semibold flex items-center gap-1.5 cursor-pointer" onClick={() => setLocalSettings({ ...localSettings, autoCompileCsvOnSave: !localSettings.autoCompileCsvOnSave })}>
                       <FileText className="w-4 h-4 text-[#10B981]" />
-                      <span>{t('settings.autoCsvTitle', 'Auto-export to CSV')}</span>
+                      <span>{t('settings.autoCsvTitle')}</span>
                     </label>
                     <p className="text-[11px] text-[#64748B] mt-0.5">
-                      {t('settings.autoCsvDesc', 'Export a unified translations.csv matrix ideal for game engines.')}
+                      {t('settings.autoCsvDesc')}
                     </p>
                   </div>
                   <button
@@ -253,7 +262,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 
                 {localSettings.autoCompileCsvOnSave && (
                   <div className="pt-3 border-t border-[#1C2128] flex items-center gap-3">
-                    <label className="text-[#94A3B8] text-[11px] font-medium shrink-0">Plural Suffix Rule:</label>
+                    <label className="text-[#94A3B8] text-[11px] font-medium shrink-0">{t('settings.pluralSuffixRule')}</label>
                     <input
                       type="text"
                       value={localSettings.csvPluralSuffix || '_P%d'}
@@ -261,7 +270,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       placeholder="_P%d"
                       className="w-24 bg-[#16191E] border border-[#2D3139] rounded px-2 py-1 text-xs text-white focus:border-[#3B82F6] outline-none font-mono"
                     />
-                    <span className="text-[#64748B] text-[10px] italic">e.g. ITEM_COIN_P0, ITEM_COIN_P1</span>
+                    <span className="text-[#64748B] text-[10px] italic">{t('settings.pluralSuffixExample')}</span>
                   </div>
                 )}
               </div>
@@ -344,7 +353,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
               </div>
               <div className="pt-2 border-t border-[#1C2128] flex items-center gap-1.5">
-                <span className="text-[10px] text-[#64748B] mr-1">{t('settings.presets', 'Presets:')}</span>
+                <span className="text-[10px] text-[#64748B] mr-1">{t('settings.presets')}</span>
                 {thresholdPresets.map((preset) => (
                   <button
                     key={preset}
@@ -374,15 +383,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <div>
                 <label className="text-white font-semibold flex items-center gap-1.5">
                   <GitBranch className="w-3.5 h-3.5 text-[#3B82F6]" />
-                  <span>{t('settings.gitAuthorTitle', 'Git Committer Attribution')}</span>
+                  <span>{t('settings.gitAuthorTitle')}</span>
                 </label>
                 <p className="text-[11px] text-[#64748B] mt-0.5">
-                  {t('settings.gitAuthorDesc', 'Default author identity written to commits.')}
+                  {t('settings.gitAuthorDesc')}
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-[#94A3B8] text-[11px] mb-1 font-medium">{t('settings.gitAuthorName', 'Author Name:')}</label>
+                  <label className="block text-[#94A3B8] text-[11px] mb-1 font-medium">{t('settings.gitAuthorName')}</label>
                   <input
                     type="text"
                     value={localSettings.authorName}
@@ -391,7 +400,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-[#94A3B8] text-[11px] mb-1 font-medium">{t('settings.gitAuthorEmail', 'Author Email:')}</label>
+                  <label className="block text-[#94A3B8] text-[11px] mb-1 font-medium">{t('settings.gitAuthorEmail')}</label>
                   <input
                     type="email"
                     value={localSettings.authorEmail}
@@ -407,7 +416,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {activeTab === 'editor' && (
           <div className="bg-[#090B0E] p-4 rounded-lg border border-[#2D3139] space-y-3">
             <label className="text-white font-semibold text-xs block">
-              {t('settings.shortcutsTitle', 'Keyboard Shortcuts')}
+              {t('settings.shortcutsTitle')}
             </label>
             <div className="grid grid-cols-2 gap-2 text-[11px]">
               {[

@@ -38,6 +38,7 @@ import { BatchOperationsModal } from './components/BatchOperationsModal';
 import { SettingsModal } from './components/SettingsModal';
 import { GitModal } from './components/GitModal';
 import { AboutModal } from './components/AboutModal';
+import { TransferModal } from './components/TransferModal';
 
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -50,6 +51,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoCompileMoOnSave: true,
   autoNewlineOnEnter: true,
   showNewlinesVisible: true,
+  autoGenerateCategories: true,
 };
 
 
@@ -146,8 +148,10 @@ export default function App() {
     handleDisconnectLocalFolder,
     handleSyncLocalFolder,
     triggerDiskSyncForPo,
-    handleExportWorkspaceZip,
-    handleImportFile
+    handleImportFile,
+    handleExport,
+    handleExportMo,
+    handleImportCsvJson,
   } = useFileSystemSync(activeWorkspaceId, currentWorkspace, setWorkspaces, setActiveWorkspaceId, settings, showToast, t);
 
   const {
@@ -219,6 +223,8 @@ export default function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isGitModalOpen, setIsGitModalOpen] = useState(false);
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [transferMode, setTransferMode] = useState<'export' | 'import'>('export');
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
 
   const activeFileId = currentWorkspace.activeFileId;
   const isPotActive = activeFileId === 'pot';
@@ -261,7 +267,7 @@ export default function App() {
     return map;
   }, [issuesMap]);
 
-  const categoryData = useMemo(() => buildCategoryTree(activeEntries, categoryIssuesCountMap, currentWorkspace.customCategories || []), [activeEntries, categoryIssuesCountMap, currentWorkspace.customCategories]);
+  const categoryData = useMemo(() => buildCategoryTree(activeEntries, categoryIssuesCountMap, currentWorkspace.customCategories || [], settings.autoGenerateCategories ?? true), [activeEntries, categoryIssuesCountMap, currentWorkspace.customCategories, settings.autoGenerateCategories]);
 
   const filteredEntries = useMemo(() => activeEntries.filter((entry) => {
     if (searchQuery.trim()) {
@@ -427,12 +433,13 @@ export default function App() {
         onOpenGitModal={() => setIsGitModalOpen(true)}
         onOpenSettingsModal={() => setIsSettingsModalOpen(true)}
         onOpenAboutModal={() => setIsAboutModalOpen(true)}
+        onOpenImportModal={() => { setTransferMode('import'); setIsTransferModalOpen(true); }}
+        onOpenExportModal={() => { setTransferMode('export'); setIsTransferModalOpen(true); }}
         onImportFile={handleImportFile}
         onOpenLocalFolder={handleOpenLocalFolder}
         localDirState={localDirState}
         onSyncLocalFolder={handleSyncLocalFolder}
         onDisconnectLocalFolder={handleDisconnectLocalFolder}
-        onExportWorkspaceZip={handleExportWorkspaceZip}
         viewMode={viewMode}
         setViewMode={setViewMode}
         canUndo={canUndo}
@@ -484,6 +491,7 @@ export default function App() {
           workspace={currentWorkspace}
           onUpdateTranslation={handleMatrixUpdateTranslation}
           showNewlinesVisible={settings.showNewlinesVisible}
+          autoGenerateCategories={settings.autoGenerateCategories ?? true}
           activeEntryId={activePotEntryId}
           hiddenMatrixFiles={hiddenMatrixFiles} // 👈 
           onNavigateToEditor={(potEntryId, poFileId) => {
@@ -519,6 +527,7 @@ export default function App() {
               stats={stats}
               onAddCategory={handleAddCategory}
               onAssignActiveEntryToCategory={(catPath) => { if (activeEntryId) handleUpdateCategory(activeEntryId, catPath); }}
+              onCreateKeyInCategory={(catPath) => { setSelectedCategory(catPath); setIsNewKeyModalOpen(true); }}
               activeEntryId={activeEntryId}
             />
           </div>
@@ -567,6 +576,8 @@ export default function App() {
               autoMarkFuzzyUnder100={settings.autoMarkFuzzyUnder100}
               onUpdateCategory={handleUpdateCategory}
               availableCategories={categoryData.allGroups.map((g) => g.name)}
+              showNewlinesVisible={settings.showNewlinesVisible}
+              autoGenerateCategories={settings.autoGenerateCategories ?? true}
               onNavigateToMatrix={() => setViewMode('matrix')}
             />
           </div>
@@ -590,7 +601,7 @@ export default function App() {
 
       <NewKeyModal isOpen={isNewKeyModalOpen} onClose={() => setIsNewKeyModalOpen(false)} onAddKey={(data) => { handleAddKey(data); if (data.category) handleAddCategory(data.category); }} availableCategories={categoryData.allGroups.map((g) => g.name)} defaultCategory={selectedCategory || ''} />
       <AddLanguageModal isOpen={isAddLanguageModalOpen} onClose={() => setIsAddLanguageModalOpen(false)} onAddLanguage={handleAddLanguage} existingLanguages={currentWorkspace.poFiles.map((p) => p.language)} />
-      <RawPoModal isOpen={isRawPoModalOpen} onClose={() => setIsRawPoModalOpen(false)} filename={isPotActive ? currentWorkspace.potFile.filename : currentPoFile?.filename || 'messages.po'} header={isPotActive ? currentWorkspace.potFile.header : currentPoFile?.header || currentWorkspace.potFile.header} entries={isPotActive ? currentWorkspace.potFile.entries : currentPoFile?.entries || []} isPot={isPotActive} onSaveRaw={(newHeader, newEntries) => {
+      <RawPoModal workspace={currentWorkspace} csvPluralSuffix={settings.csvPluralSuffix || '_P%d'} isOpen={isRawPoModalOpen} onClose={() => setIsRawPoModalOpen(false)} filename={isPotActive ? currentWorkspace.potFile.filename : currentPoFile?.filename || 'messages.po'} header={isPotActive ? currentWorkspace.potFile.header : currentPoFile?.header || currentWorkspace.potFile.header} entries={isPotActive ? currentWorkspace.potFile.entries : currentPoFile?.entries || []} isPot={isPotActive} onSaveRaw={(newHeader, newEntries) => {
         pushHistorySnapshot(currentWorkspace);
         setWorkspaces((prev) => prev.map((w) => {
           if (w.id !== activeWorkspaceId) return w;
@@ -598,7 +609,7 @@ export default function App() {
           return { ...w, poFiles: w.poFiles.map((p) => p.id === currentPoFile?.id ? { ...p, header: newHeader, entries: newEntries, isModified: true } : p), isModified: true };
         }));
       }} />
-      <MoCompilerModal isOpen={isMoCompilerModalOpen} onClose={() => setIsMoCompilerModalOpen(false)} workspace={currentWorkspace} />
+      <MoCompilerModal isOpen={isMoCompilerModalOpen} onClose={() => setIsMoCompilerModalOpen(false)} workspace={currentWorkspace} hasConnectedFolder={localDirState.isConnected} onExportMo={handleExportMo} />
       <BatchOperationsModal isOpen={isBatchModalOpen} onClose={() => setIsBatchModalOpen(false)} workspace={currentWorkspace} onBatchApplyTm={handleBatchApplyTm} onClearAllFuzzy={handleClearAllFuzzy} onMarkUntranslatedFuzzy={handleMarkUntranslatedFuzzy} fuzzyThreshold={settings.fuzzyMatchingThreshold} />
       <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setIsSettingsModalOpen(false)} settings={settings} onSaveSettings={setSettings} domainName={currentWorkspace.domainName || currentWorkspace.potFile.domainName || 'messages'} onRenameDomain={handleRenameDomain} />
       <GitModal
@@ -610,6 +621,7 @@ export default function App() {
         onRevertFile={handleRevertFile}
       />
       <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} onOpenSettings={() => { setIsAboutModalOpen(false); setIsSettingsModalOpen(true); }} />
+      <TransferModal isOpen={isTransferModalOpen} mode={transferMode} onClose={() => setIsTransferModalOpen(false)} onExport={handleExport} onImport={handleImportCsvJson} />
 
       <input ref={folderInputRef} type="file" multiple onChange={handleFolderInputChange} className="hidden" />
     </div>

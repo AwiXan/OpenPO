@@ -16,6 +16,8 @@ import {
   Edit3,
 } from 'lucide-react';
 import { deriveCategoryPath } from '../lib/categorizer';
+import { countNewlines, toDisplayText, toStoredText } from '../lib/newlineDisplay';
+import { DropdownMenu } from './ui/DropdownMenu';
 
 interface MultiLanguageGridViewProps {
   workspace: Workspace;
@@ -24,6 +26,7 @@ interface MultiLanguageGridViewProps {
   activeEntryId: string | null;
   hiddenMatrixFiles?: Set<string>;
   onNavigateToEditor: (entryId: string, poFileId: string) => void;
+  autoGenerateCategories?: boolean;
 
 }
 
@@ -34,6 +37,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
   activeEntryId,
   hiddenMatrixFiles,
   onNavigateToEditor,
+  autoGenerateCategories = true,
 }) => {
   const { t } = useTranslation();
   const potEntries = workspace.potFile.entries;
@@ -44,6 +48,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
   const [expandAllRows, setExpandAllRows] = useState<boolean>(false);
   const [groupByCategory, setGroupByCategory] = useState<boolean>(true);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [jumpCategory, setJumpCategory] = useState('');
 
   // Store refs to textareas for precise cursor manipulation: key = `${poId}_${entryId}_${idx}`
   const textareaRefs = useRef<Map<string, HTMLTextAreaElement>>(new Map());
@@ -69,7 +74,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
   const categorizedGroups = useMemo(() => {
     const map = new Map<string, PoEntry[]>();
     for (const entry of potEntries) {
-      const catPath = deriveCategoryPath(entry);
+      const catPath = deriveCategoryPath(entry, autoGenerateCategories);
       const catName = catPath.join(' / ') || 'General';
       if (!map.has(catName)) {
         map.set(catName, []);
@@ -86,11 +91,15 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
   }, [potEntries]);
 
   useEffect(() => {
+    setShowWhitespaceMarks(initialShowNewlines);
+  }, [initialShowNewlines]);
+
+  useEffect(() => {
     if (activeEntryId) {
       if (groupByCategory) {
         const entry = potEntries.find((e) => e.id === activeEntryId);
         if (entry) {
-          const catPath = deriveCategoryPath(entry);
+          const catPath = deriveCategoryPath(entry, autoGenerateCategories);
           const catName = catPath.join(' / ') || 'General';
           if (collapsedCategories.has(catName)) {
             setCollapsedCategories((prev) => {
@@ -179,8 +188,8 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
 
 
   const renderEntryRow = (potEntry: PoEntry) => {
-    const hasNewlines = potEntry.msgid.includes('\\n') || potEntry.msgid.includes('\n');
-    const newlineCount = (potEntry.msgid.match(/\\n|\n/g) || []).length;
+    const hasNewlines = countNewlines(potEntry.msgid) > 0;
+    const newlineCount = countNewlines(potEntry.msgid);
 
     return (
       <tr
@@ -193,7 +202,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           <td id={`matrix-cell-${potEntry.id}-pot`} className="matrix-col-pot p-3 border-r border-[#2D3139] bg-[#090B0E] align-top w-80 transition-colors duration-700">
             <div className="flex items-start justify-between gap-1 mb-1">
               <div className="font-semibold text-[#E2E8F0] select-text break-words whitespace-pre-wrap leading-relaxed">
-                {potEntry.msgid}
+                {toDisplayText(potEntry.msgid, showWhitespaceMarks)}
               </div>
               
               <div className="flex items-center gap-1 shrink-0">
@@ -247,7 +256,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
               <div className="space-y-1.5">
                 {currentMsgstr.map((strVal, idx) => {
                   const refKey = `${po.id}_${potEntry.id}_${idx}`;
-                  const valNewlineCount = (strVal.match(/\\n|\n/g) || []).length;
+                  const valNewlineCount = countNewlines(strVal);
 
                   return (
                     <div key={idx} className="relative group/cell">
@@ -263,10 +272,10 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
                             onFocus={() => lastFocusedCol.current = po.id}
                             ref={(el) => setTextareaRef(refKey, el)}
                             rows={expandAllRows ? 3 : 2}
-                            value={strVal}
+                            value={toDisplayText(strVal, showWhitespaceMarks)}
                             onChange={(e) => {
                               const updated = [...currentMsgstr];
-                              updated[idx] = e.target.value;
+                              updated[idx] = toStoredText(e.target.value);
                               onUpdateTranslation(po.id, potEntry.id, updated);
                             }}
                             onKeyDown={(e) => {
@@ -344,27 +353,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
           {groupByCategory && categorizedGroups.length > 1 && (
             <div className="flex items-center gap-1.5">
               {/* Stylized Jump to Category select box */}
-              <div className="relative flex items-center">
-                <select
-                  onChange={(e) => {
-                    if (e.target.value) {
-                      handleScrollToCategory(e.target.value);
-                    }
-                  }}
-                  defaultValue=""
-                  className="bg-[#1C2128] hover:bg-[#2D3748] border border-[#2D3139] hover:border-[#3B82F644] text-[#E2E8F0] rounded px-2.5 py-1.5 text-xs outline-none cursor-pointer font-sans transition-colors appearance-none pr-7"
-                >
-                  <option value="" disabled className="bg-[#16191E] text-[#94A3B8]">
-                    {t('matrix.jumpToCategory')}
-                  </option>
-                  {categorizedGroups.map(([catName, entries]) => (
-                    <option key={catName} value={catName} className="bg-[#16191E] text-[#E2E8F0]">
-                      {catName} ({entries.length})
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-[#94A3B8] pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" />
-              </div>
+              <DropdownMenu value={jumpCategory} onChange={(category) => { setJumpCategory(category); handleScrollToCategory(category); }} placeholder={t('matrix.jumpToCategory')} options={categorizedGroups.map(([catName, entries]) => ({ value: catName, label: `${catName} (${entries.length})` }))} className="min-w-[190px]" />
 
               {/* Connected Expand All / Collapse All button group */}
               <div className="flex bg-[#090B0E] p-0.5 rounded border border-[#2D3139] items-center">

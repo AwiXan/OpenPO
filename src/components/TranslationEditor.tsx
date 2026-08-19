@@ -24,6 +24,7 @@ import { extractVariables, lintEntry } from '../lib/linter';
 import { evaluatePluralIndex } from '../lib/pluralEngine';
 import { deriveCategory } from '../lib/categorizer';
 import { useTranslation } from '../lib/i18n';
+import { countNewlines, toDisplayText, toStoredText } from '../lib/newlineDisplay';
 
 interface TranslationEditorProps {
   entry: PoEntry | null;
@@ -46,6 +47,8 @@ interface TranslationEditorProps {
   onUpdateCategory?: (entryId: string, newCategory: string) => void;
   availableCategories?: string[];
   onNavigateToEditor: (entryId: string, poFileId: string) => void;
+  showNewlinesVisible?: boolean;
+  autoGenerateCategories?: boolean;
 }
 
 export const TranslationEditor: React.FC<TranslationEditorProps> = ({
@@ -68,6 +71,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
   onUpdateCategory,
   availableCategories = [],
   onNavigateToMatrix,
+  showNewlinesVisible = true,
+  autoGenerateCategories = true,
 }) => {
   const { t } = useTranslation();
 
@@ -84,8 +89,12 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
   const [copiedVar, setCopiedVar] = useState<string | null>(null);
 
   // Newline convenience tools state
-  const [showWhitespaceMarks, setShowWhitespaceMarks] = useState<boolean>(true);
+  const [showWhitespaceMarks, setShowWhitespaceMarks] = useState<boolean>(showNewlinesVisible);
   const activeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    setShowWhitespaceMarks(showNewlinesVisible);
+  }, [showNewlinesVisible]);
 
   // Sync state when entry changes
   useEffect(() => {
@@ -94,7 +103,7 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
     setLocalMsgidPlural(entry.msgidPlural || '');
     setLocalMsgctxt(entry.msgctxt || '');
     setLocalComments(entry.comments.join('\n'));
-    setLocalCategory(entry.category || deriveCategory(entry));
+    setLocalCategory(entry.category || deriveCategory(entry, autoGenerateCategories));
     setIsEditingCategory(false);
 
     const requiredForms = entry.msgidPlural ? pluralRule.nplurals : 1;
@@ -110,7 +119,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
     pluralRule.nplurals,
     JSON.stringify(entry?.msgstr),
     entry?.category,
-    entry?.flags
+    entry?.flags,
+    autoGenerateCategories
   ]);
 
   useEffect(() => {
@@ -171,24 +181,26 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
     if (textarea) {
       const start = textarea.selectionStart ?? currentVal.length;
       const end = textarea.selectionEnd ?? currentVal.length;
-      const newVal = currentVal.substring(0, start) + '\\n' + currentVal.substring(end);
-      handleMsgstrChange(index, newVal);
+      const inserted = showWhitespaceMarks ? '\\n' : '\n';
+      const displayValue = toDisplayText(currentVal, showWhitespaceMarks);
+      const newDisplayValue = displayValue.substring(0, start) + inserted + displayValue.substring(end);
+      handleMsgstrChange(index, toStoredText(newDisplayValue));
 
       // Restore cursor right after \n
       setTimeout(() => {
         if (textarea) {
           textarea.focus();
-          textarea.setSelectionRange(start + 2, start + 2);
+          textarea.setSelectionRange(start + inserted.length, start + inserted.length);
         }
       }, 0);
     } else {
-      handleMsgstrChange(index, currentVal + '\\n');
+      handleMsgstrChange(index, toStoredText(toDisplayText(currentVal, showWhitespaceMarks) + (showWhitespaceMarks ? '\\n' : '\n')));
     }
   };
 
   const handleApplyTm = (suggested: string, similarity: number) => {
     const updated = [...localMsgstr];
-    updated[activePluralTab] = suggested;
+    updated[activePluralTab] = toStoredText(suggested);
     setLocalMsgstr(updated);
 
     let nextFlags = [...entry.flags];
@@ -208,7 +220,7 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
   const handleInsertToken = (token: string) => {
     const current = localMsgstr[activePluralTab] || '';
     const updated = [...localMsgstr];
-    updated[activePluralTab] = current + token;
+    updated[activePluralTab] = toStoredText(current + token);
     setLocalMsgstr(updated);
     onUpdateEntry({
       ...entry,
@@ -232,8 +244,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
   const handleSavePotTemplateChanges = () => {
     const updatedPotEntry: PoEntry = {
       ...entry,
-      msgid: localMsgid,
-      msgidPlural: localMsgidPlural.trim() ? localMsgidPlural : undefined,
+      msgid: toStoredText(localMsgid),
+      msgidPlural: localMsgidPlural.trim() ? toStoredText(localMsgidPlural) : undefined,
       msgctxt: localMsgctxt.trim() ? localMsgctxt : undefined,
       comments: localComments.split('\n').filter((l) => l.trim() !== ''),
     };
@@ -243,9 +255,9 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
   const evaluatedPluralIndex = evaluatePluralIndex(testNumber, pluralRule);
 
   // Check newline counts for warning indicator
-  const sourceNewlineCount = (entry.msgid.match(/\\n|\n/g) || []).length;
+  const sourceNewlineCount = countNewlines(entry.msgid);
   const currentTranslation = localMsgstr[activePluralTab] || '';
-  const targetNewlineCount = (currentTranslation.match(/\\n|\n/g) || []).length;
+  const targetNewlineCount = countNewlines(currentTranslation);
   const hasNewlineMismatch = sourceNewlineCount > 0 && sourceNewlineCount !== targetNewlineCount;
 
   return (
@@ -402,8 +414,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
               <div>
                 <label className="text-[10px] text-[#64748B] uppercase block mb-1">msgid (Key/Source):</label>
                 <textarea
-                  value={localMsgid}
-                  onChange={(e) => setLocalMsgid(e.target.value)}
+                  value={toDisplayText(localMsgid, showWhitespaceMarks)}
+                  onChange={(e) => setLocalMsgid(toStoredText(e.target.value))}
                   className="w-full bg-[#16191E] border border-[#2D3139] rounded p-2 text-xs font-mono text-[#E2E8F0] focus:border-[#3B82F6] outline-none resize-none h-16"
                 />
               </div>
@@ -413,8 +425,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 <input
                   type="text"
                   placeholder="e.g. %d items in your cart"
-                  value={localMsgidPlural}
-                  onChange={(e) => setLocalMsgidPlural(e.target.value)}
+                  value={toDisplayText(localMsgidPlural, showWhitespaceMarks)}
+                  onChange={(e) => setLocalMsgidPlural(toStoredText(e.target.value))}
                   className="w-full bg-[#16191E] border border-[#2D3139] rounded px-2.5 py-1.5 text-xs font-mono text-[#E2E8F0] focus:border-[#3B82F6] outline-none"
                 />
               </div>
@@ -454,13 +466,13 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
             /* Standard Read-Only Source View */
             <div className="space-y-2 text-xs">
               <div className="bg-[#16191E] p-2.5 rounded border border-[#2D3139] font-mono text-[#E2E8F0] select-text whitespace-pre-wrap leading-relaxed">
-                {entry.msgid}
+                {toDisplayText(entry.msgid, showWhitespaceMarks)}
               </div>
 
               {entry.msgidPlural && (
                 <div className="bg-[#16191E] p-2 rounded border border-[#2D3139] text-xs font-mono select-text whitespace-pre-wrap">
                   <span className="text-[10px] text-[#3B82F6] uppercase font-bold mr-2">Plural:</span>
-                  <span className="text-[#94A3B8]">{entry.msgidPlural}</span>
+                  <span className="text-[#94A3B8]">{toDisplayText(entry.msgidPlural, showWhitespaceMarks)}</span>
                 </div>
               )}
 
@@ -532,7 +544,7 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 <button
                   onClick={() => {
                     const updated = [...localMsgstr];
-                    updated[activePluralTab] = entry.msgid;
+                    updated[activePluralTab] = toStoredText(entry.msgid);
                     setLocalMsgstr(updated);
                     onUpdateEntry({ ...entry, msgstr: updated });
                   }}
@@ -607,8 +619,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 <div className="relative">
                   <textarea
                     ref={activeTextareaRef}
-                    value={localMsgstr[activePluralTab] || ''}
-                    onChange={(e) => handleMsgstrChange(activePluralTab, e.target.value)}
+                    value={toDisplayText(localMsgstr[activePluralTab] || '', showWhitespaceMarks)}
+                    onChange={(e) => handleMsgstrChange(activePluralTab, toStoredText(e.target.value))}
                     placeholder={`Translation for ${pluralRule.names[activePluralTab] || `Form ${activePluralTab}`} (msgstr[${activePluralTab}])...`}
                     className="w-full bg-[#090B0E] border border-[#2D3139] rounded p-3 text-xs font-mono text-[#E2E8F0] placeholder-[#64748B] focus:border-[#3B82F6] outline-none resize-none h-24 leading-relaxed"
                   />
@@ -619,8 +631,8 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
               <div className="relative">
                 <textarea
                   ref={activeTextareaRef}
-                  value={localMsgstr[0] || ''}
-                  onChange={(e) => handleMsgstrChange(0, e.target.value)}
+                  value={toDisplayText(localMsgstr[0] || '', showWhitespaceMarks)}
+                  onChange={(e) => handleMsgstrChange(0, toStoredText(e.target.value))}
                   placeholder={t('editor.placeholder')}
                   className="w-full bg-[#090B0E] border border-[#2D3139] rounded p-3 text-xs font-mono text-[#E2E8F0] placeholder-[#64748B] focus:border-[#3B82F6] outline-none resize-none h-28 leading-relaxed"
                 />

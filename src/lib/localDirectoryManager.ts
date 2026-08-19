@@ -316,10 +316,11 @@ export async function savePoAndMoToDirectory(
   poFile: PoFileRecord,
   autoCompileMo: boolean = true,
   domainName: string = 'messages',
-  namingScheme: PoNamingScheme = 'domain_lang'
+  namingScheme: PoNamingScheme = 'domain_lang',
+  autoGenerateCategories = true
 ): Promise<{ poFilename: string; moFilename?: string; moBytesCount?: number }> {
   // 1. Serialize and save .po file
-  const poContent = serializePoFile(poFile.header, poFile.entries, false);
+  const poContent = serializePoFile(poFile.header, poFile.entries, false, autoGenerateCategories);
   const poFilename = poFile.filename || formatPoFilename(domainName, poFile.language, namingScheme);
 
   await writeTextFileToDirectory(dirHandle, poFilename, poContent);
@@ -351,13 +352,14 @@ export async function saveWorkspaceToDirectory(
   dirHandle: any,
   workspace: Workspace,
   autoCompileMo: boolean = true,
-  namingScheme: PoNamingScheme = 'domain_lang'
+  namingScheme: PoNamingScheme = 'domain_lang',
+  autoGenerateCategories = true
 ): Promise<{ savedPoCount: number; savedMoCount: number; timestamp: string }> {
   const domain = workspace.domainName || workspace.potFile.domainName || 'messages';
 
   // 1. Save POT template
   if (workspace.potFile) {
-    const potContent = serializePoFile(workspace.potFile.header, workspace.potFile.entries, true);
+    const potContent = serializePoFile(workspace.potFile.header, workspace.potFile.entries, true, autoGenerateCategories);
     const potFilename = workspace.potFile.filename || `${domain}.pot`;
     await writeTextFileToDirectory(dirHandle, potFilename, potContent);
   }
@@ -367,7 +369,7 @@ export async function saveWorkspaceToDirectory(
 
   // 2. Save each PO and paired MO
   for (const po of workspace.poFiles) {
-    const res = await savePoAndMoToDirectory(dirHandle, po, autoCompileMo, domain, namingScheme);
+    const res = await savePoAndMoToDirectory(dirHandle, po, autoCompileMo, domain, namingScheme, autoGenerateCategories);
     savedPoCount++;
     if (res.moFilename) {
       savedMoCount++;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Folder } from 'lucide-react';
 import { PoEntry } from '../types/gettext';
 import { generateEntryId } from '../lib/poParser';
@@ -29,6 +29,10 @@ export const NewKeyModal: React.FC<NewKeyModalProps> = ({
   const [msgctxt, setMsgctxt] = useState('');
   const [comments, setComments] = useState('');
   const [references, setReferences] = useState('');
+
+  useEffect(() => {
+    if (isOpen) setCategory(defaultCategory);
+  }, [defaultCategory, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

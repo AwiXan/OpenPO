@@ -1,4 +1,5 @@
 import { PoEntry, PoHeader } from '../types/gettext';
+import { deriveCategory } from './categorizer';
 
 // Generate lightweight unique IDs
 let idCounter = 1;
@@ -130,6 +131,7 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
   };
 
   let currentComments: string[] = [];
+  let currentOpenPoCat: string | undefined;
   let currentExtractedComments: string[] = [];
   let currentReferences: string[] = [];
   let currentFlags: string[] = [];
@@ -150,8 +152,9 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
         header = parseHeader(headerStr);
       } else {
         // Normal entry
-        let category: string | undefined = undefined;
+        let category: string | undefined = currentOpenPoCat;
         for (const ec of currentExtractedComments) {
+          if (/^openpocat:\s*/i.test(ec)) continue;
           const match = ec.match(/^category:\s*(.+)$/i);
           if (match) {
             category = match[1].trim();
@@ -174,8 +177,8 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
           msgidPlural: currentMsgidPlural,
           msgctxt: currentMsgctxt,
           msgstr: currentMsgstr.length > 0 ? currentMsgstr : [''],
-          comments: [...currentComments],
-          extractedComments: [...currentExtractedComments],
+          comments: currentComments.filter((comment) => !/^(?:openpocat|category):\s*/i.test(comment)),
+          extractedComments: currentExtractedComments.filter((comment) => !/^(?:openpocat|category):\s*/i.test(comment)),
           references: [...currentReferences],
           flags: [...currentFlags],
           previousMsgid: currentPreviousMsgid,
@@ -186,6 +189,7 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
 
     // Reset state
     currentComments = [];
+    currentOpenPoCat = undefined;
     currentExtractedComments = [];
     currentReferences = [];
     currentFlags = [];
@@ -225,7 +229,12 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
       }
 
       if (line.startsWith('#.')) {
-        currentExtractedComments.push(line.slice(2).trim());
+        const comment = line.slice(2).trim();
+        const openPoCat = comment.match(/^openpocat:\s*(.*)$/i);
+        const category = comment.match(/^category:\s*(.*)$/i);
+        if (openPoCat) currentOpenPoCat = openPoCat[1].trim();
+        else if (category) currentOpenPoCat = category[1].trim();
+        else currentExtractedComments.push(comment);
       } else if (line.startsWith('#:')) {
         const refs = line.slice(2).trim().split(/\s+/);
         currentReferences.push(...refs);
@@ -239,7 +248,12 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
           if (match) currentPreviousMsgid = unescapePoString(match[1]);
         }
       } else {
-        currentComments.push(line.slice(1).trim());
+        const comment = line.slice(1).trim();
+        const openPoCat = comment.match(/^openpocat:\s*(.*)$/i);
+        const category = comment.match(/^category:\s*(.*)$/i);
+        if (openPoCat) currentOpenPoCat = openPoCat[1].trim();
+        else if (category) currentOpenPoCat = category[1].trim();
+        else currentComments.push(comment);
       }
       continue;
     }
@@ -327,7 +341,7 @@ export function parsePoContent(content: string): { header: PoHeader; entries: Po
 /**
  * Serializes PoHeader & PoEntry list back into valid gettext .po or .pot file
  */
-export function serializePoFile(header: PoHeader, entries: PoEntry[], isPot = false): string {
+export function serializePoFile(header: PoHeader, entries: PoEntry[], isPot = false, autoGenerateCategories = false): string {
   let output = '';
 
   // 1. Header block
@@ -344,16 +358,16 @@ export function serializePoFile(header: PoHeader, entries: PoEntry[], isPot = fa
 
   // 2. Entries
   for (const entry of entries) {
+    const category = entry.category?.trim() || (autoGenerateCategories ? deriveCategory(entry, true) : '');
     // Comments
     for (const c of entry.comments) {
-      output += `# ${c}\n`;
+      if (!/^(?:openpocat|category):\s*/i.test(c)) output += `# ${c}\n`;
     }
-    const hasCategoryInExtracted = entry.extractedComments.some((ec) => /^category:\s*/i.test(ec));
+    if (category) {
+      output += `#. Category: ${category}\n`;
+    }
     for (const ec of entry.extractedComments) {
-      output += `#. ${ec}\n`;
-    }
-    if (entry.category && entry.category.trim() && !hasCategoryInExtracted) {
-      output += `#. Category: ${entry.category.trim()}\n`;
+      if (!/^(?:openpocat|category):\s*/i.test(ec)) output += `#. ${ec}\n`;
     }
     for (const ref of entry.references) {
       output += `#: ${ref}\n`;
