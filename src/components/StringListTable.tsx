@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Clock,
   Trash2,
@@ -17,6 +17,7 @@ interface StringListTableProps {
   onDeleteEntry: (id: string, e: React.MouseEvent) => void;
   issuesMap: Map<string, LintIssue[]>;
   isPotTemplate: boolean;
+  onRenameEntry?: (entryId: string, newMsgid: string) => void;
 }
 
 export const StringListTable: React.FC<StringListTableProps> = ({
@@ -27,12 +28,37 @@ export const StringListTable: React.FC<StringListTableProps> = ({
   onDeleteEntry,
   issuesMap,
   isPotTemplate,
+  onRenameEntry,
 }) => {
   const { t } = useTranslation();
 
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [tempMsgid, setTempMsgid] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingEntryId && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingEntryId]);
+
+  const handleStartRename = (entry: PoEntry, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingEntryId(entry.id);
+    setTempMsgid(entry.msgid);
+  };
+
+  const handleCommitRename = (entry: PoEntry) => {
+    const trimmed = tempMsgid.trim();
+    if (trimmed && trimmed !== entry.msgid && onRenameEntry) {
+      onRenameEntry(entry.id, trimmed);
+    }
+    setEditingEntryId(null);
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-[#090B0E] border-r border-[#2D3139] overflow-hidden select-none">
-      {/* Table Container */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead className="sticky top-0 bg-[#16191E] border-b border-[#2D3139] text-[10px] font-bold text-[#64748B] uppercase tracking-wider z-10">
@@ -58,7 +84,6 @@ export const StringListTable: React.FC<StringListTableProps> = ({
               const IssueIcon = hasError ? AlertCircle : hasWarning ? AlertTriangle : Info;
               const pluralIssues = issues.filter((issue) => issue.field === 'plural');
 
-              // Determine status dot color
               let dotColor = 'text-[#64748B]';
               if (isPotTemplate) {
                 dotColor = 'text-[#3B82F6]';
@@ -80,26 +105,51 @@ export const StringListTable: React.FC<StringListTableProps> = ({
                       : 'hover:bg-[#1E293B40]'
                   }`}
                 >
-                  {/* Status Dot */}
                   <td className={`px-3 py-2.5 text-center text-xs ${dotColor}`}>
                     ●
                   </td>
 
                   {/* Message ID / Content */}
                   <td className="px-3 py-2.5 overflow-hidden max-w-xs">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-[#E2E8F0] truncate">{entry.msgid}</span>
-                      {isPlural && (
-                        <span className="text-[9px] px-1 py-0.2 rounded bg-[#3B82F61A] text-[#3B82F6] font-mono shrink-0">
-                          plural
+                    {editingEntryId === entry.id ? (
+                      <input
+                        ref={editInputRef}
+                        type="text"
+                        value={tempMsgid}
+                        onChange={(e) => setTempMsgid(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleCommitRename(entry);
+                          } else if (e.key === 'Escape') {
+                            setEditingEntryId(null);
+                          }
+                        }}
+                        onBlur={() => handleCommitRename(entry)}
+                        className="w-full bg-[#090B0E] border border-[#3B82F6] rounded px-1.5 py-0.5 text-xs font-mono text-[#38BDF8] outline-none shadow-inner"
+                      />
+                    ) : (
+                      <div
+                        className="flex items-center gap-1.5"
+                        onDoubleClick={(e) => handleStartRename(entry, e)}
+                        title="Double-click to rename key"
+                      >
+                        <span className="font-semibold text-[#E2E8F0] truncate hover:text-[#38BDF8] transition-colors">
+                          {entry.msgid}
                         </span>
-                      )}
-                      {entry.msgctxt && (
-                        <span className="text-[9px] px-1 py-0.2 rounded bg-[#1C2128] text-[#94A3B8] font-mono truncate shrink-0 border border-[#2D3139]">
-                          [{entry.msgctxt}]
-                        </span>
-                      )}
-                    </div>
+                        {isPlural && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-[#3B82F61A] text-[#3B82F6] font-mono shrink-0">
+                            plural
+                          </span>
+                        )}
+                        {entry.msgctxt && (
+                          <span className="text-[9px] px-1 py-0.2 rounded bg-[#1C2128] text-[#94A3B8] font-mono truncate shrink-0 border border-[#2D3139]">
+                            [{entry.msgctxt}]
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {!isPotTemplate && (
                       <div className="text-[11px] text-[#94A3B8] font-sans truncate mt-0.5">
@@ -108,7 +158,6 @@ export const StringListTable: React.FC<StringListTableProps> = ({
                     )}
                   </td>
 
-                  {/* Status Badge */}
                   <td className="px-3 py-2.5">
                     {isPotTemplate ? (
                       <span className="text-[#3B82F6] bg-[#3B82F61A] px-2 py-0.5 rounded text-[10px] font-mono">
@@ -129,7 +178,6 @@ export const StringListTable: React.FC<StringListTableProps> = ({
                     )}
                   </td>
 
-                  {/* Validation Issues */}
                   <td className="px-3 py-2.5">
                     {issues.length > 0 ? (
                       <div
@@ -159,7 +207,6 @@ export const StringListTable: React.FC<StringListTableProps> = ({
                     )}
                   </td>
 
-                  {/* Actions */}
                   <td className="px-3 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       {!isPotTemplate && (

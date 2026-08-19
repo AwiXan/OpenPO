@@ -28,6 +28,7 @@ export function useWorkspaceActions(
       poFiles: JSON.parse(JSON.stringify(ws.poFiles)),
       activeFileId: ws.activeFileId,
       activeEntryId: ws.activeEntryId,
+      customCategories: JSON.parse(JSON.stringify(ws.customCategories || [])), // 👈 Сохраняем категории
     };
 
     setHistoryMap((prev) => {
@@ -58,6 +59,7 @@ export function useWorkspaceActions(
       poFiles: JSON.parse(JSON.stringify(currentWorkspace.poFiles)),
       activeFileId: currentWorkspace.activeFileId,
       activeEntryId: currentWorkspace.activeEntryId,
+      customCategories: JSON.parse(JSON.stringify(currentWorkspace.customCategories || [])), // 👈
     };
 
     setHistoryMap((prev) => ({
@@ -74,6 +76,7 @@ export function useWorkspaceActions(
           poFiles: JSON.parse(JSON.stringify(previousSnapshot.poFiles)),
           activeFileId: previousSnapshot.activeFileId,
           activeEntryId: previousSnapshot.activeEntryId,
+          customCategories: previousSnapshot.customCategories ? JSON.parse(JSON.stringify(previousSnapshot.customCategories)) : [], // 👈 Восстанавливаем
           isModified: true,
         };
       })
@@ -95,6 +98,7 @@ export function useWorkspaceActions(
       poFiles: JSON.parse(JSON.stringify(currentWorkspace.poFiles)),
       activeFileId: currentWorkspace.activeFileId,
       activeEntryId: currentWorkspace.activeEntryId,
+      customCategories: JSON.parse(JSON.stringify(currentWorkspace.customCategories || [])), // 👈
     };
 
     setHistoryMap((prev) => ({
@@ -111,6 +115,7 @@ export function useWorkspaceActions(
           poFiles: JSON.parse(JSON.stringify(nextSnapshot.poFiles)),
           activeFileId: nextSnapshot.activeFileId,
           activeEntryId: nextSnapshot.activeEntryId,
+          customCategories: nextSnapshot.customCategories ? JSON.parse(JSON.stringify(nextSnapshot.customCategories)) : [], // 👈 Восстанавливаем
           isModified: true,
         };
       })
@@ -118,9 +123,12 @@ export function useWorkspaceActions(
   }, [activeWorkspaceId, currentWorkspace, historyMap, setWorkspaces]);
 
   const handleAddCategory = useCallback((categoryPath: string) => {
-    if (!categoryPath || !categoryPath.trim()) return;
+    if (!categoryPath || !categoryPath.trim() || !currentWorkspace) return;
     const normalized = normalizeCategoryPath(categoryPath);
     if (!normalized) return;
+
+    pushHistorySnapshot(currentWorkspace, `Add category ${normalized}`);
+
     setWorkspaces((prev) =>
       prev.map((w) => {
         if (w.id !== activeWorkspaceId) return w;
@@ -130,11 +138,83 @@ export function useWorkspaceActions(
       })
     );
     showToast(`${t('category.category')}: ${normalized}`, 'success');
-  }, [activeWorkspaceId, showToast, t, setWorkspaces]);
+  }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, showToast, t, setWorkspaces]);
 
   const handleSelectEntry = (id: string) => {
     setWorkspaces((prev) => prev.map((w) => (w.id === activeWorkspaceId ? { ...w, activeEntryId: id } : w)));
   };
+
+  const handleReorderCategories = useCallback((
+    sourcePath: string,
+    targetPath: string | null,
+    position: 'before' | 'after' | 'inside'
+  ) => {
+    if (!currentWorkspace || !sourcePath) return;
+
+    pushHistorySnapshot(currentWorkspace, `Reorder category ${sourcePath}`);
+
+    setWorkspaces((prev) =>
+      prev.map((w) => {
+        if (w.id !== activeWorkspaceId) return w;
+
+        if (position === 'inside' && targetPath) {
+          const nodeName = sourcePath.split(' / ').pop()!;
+          const newFullPath = `${targetPath} / ${nodeName}`;
+
+          const updateEntryCat = (e: PoEntry): PoEntry => {
+            if (!e.category) return e;
+            if (e.category === sourcePath) return { ...e, category: newFullPath };
+            if (e.category.startsWith(sourcePath + ' / ')) {
+              return { ...e, category: `${newFullPath} / ${e.category.slice((sourcePath + ' / ').length)}` };
+            }
+            return e;
+          };
+
+          const updatedPotEntries = w.potFile.entries.map(updateEntryCat);
+          const updatedPoFiles = w.poFiles.map((po) => ({
+            ...po,
+            entries: po.entries.map(updateEntryCat),
+            isModified: true,
+          }));
+
+          const updatedCustomCats = (w.customCategories || []).map((cat) => {
+            if (cat === sourcePath) return newFullPath;
+            if (cat.startsWith(sourcePath + ' / ')) {
+              return `${newFullPath} / ${cat.slice((sourcePath + ' / ').length)}`;
+            }
+            return cat;
+          });
+
+          return {
+            ...w,
+            potFile: { ...w.potFile, entries: updatedPotEntries, isModified: true },
+            poFiles: updatedPoFiles,
+            customCategories: Array.from(new Set(updatedCustomCats)),
+            isModified: true,
+          };
+        }
+
+        // 2. Если перестановка порядка (before / after) среди сиблингов
+        const currentCats = [...(w.customCategories || [])];
+        const sourceIndex = currentCats.indexOf(sourcePath);
+        if (sourceIndex >= 0) currentCats.splice(sourceIndex, 1);
+
+        if (targetPath) {
+          const targetIndex = currentCats.indexOf(targetPath);
+          const insertIndex = position === 'before' ? Math.max(0, targetIndex) : targetIndex + 1;
+          currentCats.splice(insertIndex, 0, sourcePath);
+        } else {
+          currentCats.push(sourcePath);
+        }
+
+        return {
+          ...w,
+          customCategories: currentCats,
+          isModified: true,
+        };
+      })
+    );
+  }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces]);
 
   const handleSelectFile = (fileId: string) => {
     setWorkspaces((prev) =>
@@ -259,6 +339,108 @@ export function useWorkspaceActions(
       })
     );
   }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces]);
+
+  const handleRenameCategory = useCallback((oldCategoryPath: string, newCategoryPath: string) => {
+    if (!currentWorkspace || !oldCategoryPath.trim() || !newCategoryPath.trim()) return;
+    const oldNorm = normalizeCategoryPath(oldCategoryPath);
+    const newNorm = normalizeCategoryPath(newCategoryPath);
+    if (!oldNorm || !newNorm || oldNorm === newNorm) return;
+
+    pushHistorySnapshot(currentWorkspace, `Rename category ${oldNorm} to ${newNorm}`);
+
+    setWorkspaces((prev) =>
+      prev.map((w) => {
+        if (w.id !== activeWorkspaceId) return w;
+
+        const updateEntryCat = (e: PoEntry): PoEntry => {
+          if (!e.category) return e;
+          if (e.category === oldNorm) {
+            return { ...e, category: newNorm };
+          }
+          if (e.category.startsWith(oldNorm + ' / ')) {
+            const sub = e.category.slice((oldNorm + ' / ').length);
+            return { ...e, category: `${newNorm} / ${sub}` };
+          }
+          return e;
+        };
+
+        const updatedPotEntries = w.potFile.entries.map(updateEntryCat);
+        const updatedPoFiles = w.poFiles.map((po) => ({
+          ...po,
+          entries: po.entries.map(updateEntryCat),
+          isModified: true,
+        }));
+
+        const updatedCustomCats = (w.customCategories || []).map((cat) => {
+          if (cat === oldNorm) return newNorm;
+          if (cat.startsWith(oldNorm + ' / ')) {
+            const sub = cat.slice((oldNorm + ' / ').length);
+            return `${newNorm} / ${sub}`;
+          }
+          return cat;
+        });
+
+        return {
+          ...w,
+          potFile: { ...w.potFile, entries: updatedPotEntries, isModified: true },
+          poFiles: updatedPoFiles,
+          customCategories: Array.from(new Set(updatedCustomCats)),
+          isModified: true,
+        };
+      })
+    );
+    showToast(`Renamed category to "${newNorm}"`, 'success');
+  }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces, showToast]);
+
+  const handleDeleteCategory = useCallback((categoryPath: string) => {
+    if (!currentWorkspace || !categoryPath) return;
+    const targetNorm = normalizeCategoryPath(categoryPath);
+    if (!targetNorm) return;
+
+    pushHistorySnapshot(currentWorkspace, `Delete category ${targetNorm}`);
+
+    setWorkspaces((prev) =>
+      prev.map((w) => {
+        if (w.id !== activeWorkspaceId) return w;
+
+        const cleanEntry = (e: PoEntry): PoEntry => {
+          if (!e.category) return e;
+          const entryNorm = normalizeCategoryPath(e.category);
+          if (entryNorm === targetNorm || entryNorm.startsWith(targetNorm + ' / ')) {
+            return {
+              ...e,
+              category: undefined,
+              comments: e.comments.filter((c) => !/^(?:openpocat|category):\s*/i.test(c)),
+              extractedComments: e.extractedComments.filter((c) => !/^(?:openpocat|category):\s*/i.test(c)),
+            };
+          }
+          return e;
+        };
+
+        const updatedPotEntries = w.potFile.entries.map(cleanEntry);
+        const updatedPoFiles = w.poFiles.map((po) => ({
+          ...po,
+          entries: po.entries.map(cleanEntry),
+          isModified: true,
+        }));
+
+        const updatedCustomCats = (w.customCategories || []).filter((cat) => {
+          const catNorm = normalizeCategoryPath(cat);
+          return catNorm !== targetNorm && !catNorm.startsWith(targetNorm + ' / ');
+        });
+
+        return {
+          ...w,
+          potFile: { ...w.potFile, entries: updatedPotEntries, isModified: true },
+          poFiles: updatedPoFiles,
+          customCategories: updatedCustomCats,
+          isModified: true,
+        };
+      })
+    );
+
+    showToast(`Category "${targetNorm}" deleted`, 'info');
+  }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces, showToast]);
 
   const handleAddLanguage = useCallback((langCode: string, langName: string, pluralForms: string) => {
     if (!currentWorkspace) return;
@@ -513,7 +695,9 @@ export function useWorkspaceActions(
     handleAddCategory, handleSelectEntry, handleSelectFile, handleUpdateEntry, handleSyncPotEntry, handleUpdateCategory,
     handleAddKey, handleDeleteKey, handleAddLanguage, handleDeleteLanguage, handleToggleFuzzy, handleMatrixUpdateTranslation,
     handleRenameDomain, handleCreateWorkspace, handleCloseWorkspace, handleBatchApplyTm, handleClearAllFuzzy, handleMarkUntranslatedFuzzy,
-    handleInitGit, handleStageFile, handleUnstageFile, handleStageAll, handleUnstageAll, handleCommit, handleRevertFile, handleRestoreCommit,
+    handleInitGit, handleStageFile, handleUnstageFile, handleStageAll, handleUnstageAll, handleCommit, handleRevertFile, handleRestoreCommit, handleRenameCategory,
+    handleDeleteCategory,
+    handleReorderCategories,
     handleReorderWorkspaces
   };
 }

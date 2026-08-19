@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Layers,
@@ -6,20 +6,18 @@ import {
   Clock,
   AlertTriangle,
   Hash,
-  ChevronDown,
   ChevronRight,
   Folder,
   FolderOpen,
   FolderPlus,
+  FilePlus,
+  Trash2,
   ChevronsDown,
   ChevronsUp,
-  Tag,
-  Sparkles,
   GripHorizontal,
   Plus,
-  KeyRound,
-  Check,
-  MoreVertical,
+  X,
+  Filter,
 } from 'lucide-react';
 import { CategoryNode } from '../lib/categorizer';
 import { FilterStatus } from '../types/gettext';
@@ -27,7 +25,7 @@ import { useTranslation } from '../lib/i18n';
 
 interface SidebarCategoriesProps {
   categoryTree: CategoryNode[];
-  selectedCategory: string | null; // null = all, or "Ui", "Ui / Nav"
+  selectedCategory: string | null;
   onSelectCategory: (categoryFullPath: string | null) => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
@@ -42,9 +40,10 @@ interface SidebarCategoriesProps {
     plurals: number;
   };
   onAddCategory?: (categoryPath: string) => void;
-  onAssignActiveEntryToCategory?: (categoryFullPath: string) => void;
   onCreateKeyInCategory?: (categoryFullPath: string) => void;
-  activeEntryId?: string | null;
+  onRenameCategory?: (oldPath: string, newPath: string) => void;
+  onDeleteCategory?: (categoryPath: string) => void;
+  onReorderCategories?: (sourcePath: string, targetPath: string | null, position: 'before' | 'after' | 'inside') => void;
 }
 
 export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
@@ -57,21 +56,52 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
   onFilterStatusChange,
   stats,
   onAddCategory,
-  onAssignActiveEntryToCategory,
   onCreateKeyInCategory,
-  activeEntryId,
+  onRenameCategory,
+  onDeleteCategory,
+  onReorderCategories,
+  
 }) => {
   const { t } = useTranslation();
 
-  // Vertical split height for status filters vs nested categories
   const [statusFiltersHeight, setStatusFiltersHeight] = useState<number>(205);
   const [isDraggingSplit, setIsDraggingSplit] = useState(false);
   const statusFiltersRef = useRef<HTMLDivElement>(null);
 
-  // New Category Prompt State
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [newCategoryPath, setNewCategoryPath] = useState('');
   const [parentPathForNewCategory, setParentPathForNewCategory] = useState<string | null>(null);
+
+  // Drag and drop state
+  const [draggedCategoryPath, setDraggedCategoryPath] = useState<string | null>(null);
+  const [dragOverTarget, setDragOverTarget] = useState<{
+    path: string;
+    position: 'before' | 'after' | 'inside';
+  } | null>(null);
+  const [isDragOverRoot, setIsDragOverRoot] = useState(false);
+
+  // Inline rename state
+  const [editingCategoryPath, setEditingCategoryPath] = useState<string | null>(null);
+  const [editingCategoryName, setEditingCategoryName] = useState('');
+  const editInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingCategoryPath && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingCategoryPath]);
+
+  const handleCommitRename = (node: CategoryNode) => {
+    const trimmed = editingCategoryName.trim();
+    if (trimmed && trimmed !== node.name && onRenameCategory) {
+      const pathParts = node.fullPath.split(' / ');
+      pathParts[pathParts.length - 1] = trimmed;
+      const newFullPath = pathParts.join(' / ');
+      onRenameCategory(node.fullPath, newFullPath);
+    }
+    setEditingCategoryPath(null);
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -79,9 +109,14 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
       const filterRect = statusFiltersRef.current?.getBoundingClientRect();
       const sidebarEl = document.getElementById('openpot-sidebar-container');
       if (!filterRect || !sidebarEl) return;
+
       const sidebarRect = sidebarEl.getBoundingClientRect();
-      const maxHeight = Math.max(90, sidebarRect.bottom - filterRect.top - 120);
-      const clampedHeight = Math.max(90, Math.min(maxHeight, e.clientY - filterRect.top));
+      const scale = (sidebarRect.width / sidebarEl.offsetWidth) || 1;
+
+      const unscaledDeltaY = (e.clientY - filterRect.top) / scale;
+      const unscaledMaxHeight = Math.max(90, (sidebarRect.bottom - filterRect.top) / scale - 120);
+
+      const clampedHeight = Math.max(90, Math.min(unscaledMaxHeight, unscaledDeltaY));
       setStatusFiltersHeight(clampedHeight);
     };
 
@@ -107,10 +142,8 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
     };
   }, [isDraggingSplit]);
 
-  // State for expanded folder paths
   const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() => {
     const set = new Set<string>();
-    // Default expand root nodes and level 1 nodes
     function addExpanded(nodes: CategoryNode[]) {
       for (const node of nodes) {
         if (node.children.length > 0) {
@@ -122,8 +155,6 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
     addExpanded(categoryTree);
     return set;
   });
-
-  const [categoryFilterText] = useState('');
 
   const toggleExpand = (fullPath: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -156,37 +187,62 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
     setExpandedPaths(new Set());
   };
 
-  // Filter tree nodes if user types in category filter
-  const filteredTree = useMemo(() => {
-    if (!categoryFilterText.trim()) return categoryTree;
-    const q = categoryFilterText.toLowerCase();
+  const handleNodeDragOver = (e: React.DragEvent, nodePath: string) => {
+    if (!draggedCategoryPath || draggedCategoryPath === nodePath) return;
+    if (nodePath.startsWith(draggedCategoryPath + ' / ')) return; // нельзя бросать в своих потомков
 
-    function filterNodes(nodes: CategoryNode[]): CategoryNode[] {
-      const result: CategoryNode[] = [];
-      for (const node of nodes) {
-        const matchesSelf =
-          node.name.toLowerCase().includes(q) || node.fullPath.toLowerCase().includes(q);
-        const filteredChildren = filterNodes(node.children);
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
 
-        if (matchesSelf || filteredChildren.length > 0) {
-          result.push({
-            ...node,
-            children: filteredChildren,
-          });
-        }
-      }
-      return result;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const height = rect.height;
+
+    let position: 'before' | 'after' | 'inside' = 'inside';
+    if (offsetY < height * 0.25) {
+      position = 'before';
+    } else if (offsetY > height * 0.75) {
+      position = 'after';
     }
 
-    return filterNodes(categoryTree);
-  }, [categoryTree, categoryFilterText]);
+    setDragOverTarget({ path: nodePath, position });
+  };
 
-  // Render individual tree node recursively
-  const renderTreeNode = (
-    node: CategoryNode,
-    isLastChild: boolean,
-    ancestorIsLast: boolean[] = []
-  ) => {
+  const handleNodeDrop = (e: React.DragEvent, targetPath: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!draggedCategoryPath || !onReorderCategories) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    const height = rect.height;
+
+    let position: 'before' | 'after' | 'inside' = 'inside';
+    if (offsetY < height * 0.25) {
+      position = 'before';
+    } else if (offsetY > height * 0.75) {
+      position = 'after';
+    }
+
+    onReorderCategories(draggedCategoryPath, targetPath, position);
+
+    setDraggedCategoryPath(null);
+    setDragOverTarget(null);
+  };
+
+  const handleDropOnRoot = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOverRoot(false);
+
+    if (!draggedCategoryPath || !onReorderCategories) return;
+    onReorderCategories(draggedCategoryPath, null, 'inside');
+    setDraggedCategoryPath(null);
+    setDragOverTarget(null);
+  };
+
+  const renderTreeNode = (node: CategoryNode) => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedPaths.has(node.fullPath);
     const isSelected = selectedCategory === node.fullPath;
@@ -195,138 +251,199 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
       selectedCategory !== node.fullPath &&
       selectedCategory.startsWith(node.fullPath + ' / ');
 
+    const isDragging = draggedCategoryPath === node.fullPath;
+    const isTarget = dragOverTarget?.path === node.fullPath;
+    const isTargetInside = isTarget && dragOverTarget?.position === 'inside';
+    const isTargetBefore = isTarget && dragOverTarget?.position === 'before';
+    const isTargetAfter = isTarget && dragOverTarget?.position === 'after';
+    const hasWarnings = (node.untranslatedCount > 0) || (node.issueCount > 0) || (node.fuzzyCount > 0);
+
     return (
-      <div key={node.id} className="flex flex-col select-none">
+      <div key={node.id} className="flex flex-col select-none relative">
         <div
+          draggable={editingCategoryPath !== node.fullPath}
+          style={{
+            paddingLeft: `${node.level * 16 + 8}px`,
+            WebkitUserDrag: 'element',
+            userSelect: 'none',
+          }}
+          onDragStart={(e) => {
+            e.stopPropagation();
+            setDraggedCategoryPath(node.fullPath);
+            e.dataTransfer.setData('text/plain', node.fullPath);
+            e.dataTransfer.effectAllowed = 'move';
+          }}
+          onDragEnd={() => {
+            setDraggedCategoryPath(null);
+            setDragOverTarget(null);
+            setIsDragOverRoot(false);
+          }}
+          onDragOver={(e) => handleNodeDragOver(e, node.fullPath)}
+          onDragLeave={(e) => {
+            e.stopPropagation();
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              setDragOverTarget(null);
+            }
+          }}
+          onDrop={(e) => handleNodeDrop(e, node.fullPath)}
           onClick={() => onSelectCategory(isSelected ? null : node.fullPath)}
-          className={`group flex items-center justify-between py-1 px-2 rounded-md text-xs cursor-pointer transition-all ${
-            isSelected
-              ? 'bg-[#1E293B] text-white font-semibold border-l-2 border-[#3B82F6] pl-2 shadow-xs'
+          className={`group flex items-center justify-between h-7 px-2 rounded-md text-xs cursor-pointer transition-colors relative ${
+            isDragging ? 'opacity-30 bg-[#1E293B]' : ''
+          } ${
+            isTargetInside
+              ? 'bg-[#38BDF820] border border-dashed border-[#38BDF8]'
+              : isSelected
+              ? 'bg-[#1E293B] text-white font-medium shadow-xs'
               : isAncestorOfSelected
-              ? 'bg-[#161F2E]/60 text-[#38BDF8] hover:bg-[#1C2128]'
+              ? 'bg-[#161F2E]/40 text-[#38BDF8]'
               : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
           }`}
-          style={{ paddingLeft: `${node.level * 14 + 6}px` }}
         >
-          {/* Left Branch & Label Section */}
-          <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-            {/* Tree Branch Guide Line for nested nodes */}
-            {node.level > 0 && (
-              <span className="text-[#475569] font-mono text-[11px] select-none shrink-0 opacity-70">
-                {isLastChild ? '└─' : '├─'}
-              </span>
-            )}
+          {/* Индикатор вставки сверху */}
+          {isTargetBefore && (
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#38BDF8] z-20 shadow-[0_0_4px_#38BDF8]" />
+          )}
 
-            {/* Expand / Collapse Chevron */}
+          {/* Индикатор вставки снизу */}
+          {isTargetAfter && (
+            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#38BDF8] z-20 shadow-[0_0_4px_#38BDF8]" />
+          )}
+
+          {isSelected && (
+            <div className="absolute left-0 top-1 bottom-1 w-0.5 bg-[#38BDF8] rounded-r" />
+          )}
+
+          {/* Левая часть */}
+          <div className="flex items-center gap-1.5 min-w-0 overflow-hidden pr-1">
             {hasChildren ? (
               <button
+                type="button"
                 onClick={(e) => toggleExpand(node.fullPath, e)}
-                className="p-0.5 hover:bg-[#2D3139] rounded text-[#64748B] hover:text-[#E2E8F0] transition-colors shrink-0"
-                title={isExpanded ? 'Collapse folder' : 'Expand folder'}
+                className="w-4 h-4 flex items-center justify-center rounded hover:bg-[#2D3139] text-[#64748B] hover:text-[#E2E8F0] transition-colors shrink-0"
               >
-                {isExpanded ? (
-                  <ChevronDown className="w-3 h-3 text-[#38BDF8]" />
-                ) : (
-                  <ChevronRight className="w-3 h-3" />
-                )}
+                <ChevronRight
+                  className={`w-3.5 h-3.5 transition-transform duration-150 ${
+                    isExpanded ? 'rotate-90 text-[#38BDF8]' : ''
+                  }`}
+                />
               </button>
             ) : (
-              <span className="w-3 h-3 shrink-0 flex items-center justify-center text-[#475569]">
-                <Tag className="w-2.5 h-2.5 opacity-50" />
+              <span className="w-4 h-4 shrink-0" />
+            )}
+
+            {isExpanded ? (
+              <FolderOpen className="w-3.5 h-3.5 text-[#38BDF8] shrink-0 pointer-events-none" />
+            ) : (
+              <Folder
+                className={`w-3.5 h-3.5 shrink-0 transition-colors pointer-events-none ${
+                  isSelected ? 'text-[#38BDF8]' : 'text-[#64748B] group-hover:text-[#94A3B8]'
+                }`}
+              />
+            )}
+
+            {editingCategoryPath === node.fullPath ? (
+              <input
+                ref={editInputRef}
+                type="text"
+                value={editingCategoryName}
+                onChange={(e) => setEditingCategoryName(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCommitRename(node);
+                  } else if (e.key === 'Escape') {
+                    setEditingCategoryPath(null);
+                  }
+                }}
+                onBlur={() => handleCommitRename(node)}
+                className="bg-[#090B0E] border border-[#3B82F6] rounded px-1 text-[11px] font-mono text-[#38BDF8] outline-none max-w-[120px]"
+              />
+            ) : (
+              <span
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  setEditingCategoryPath(node.fullPath);
+                  setEditingCategoryName(node.name);
+                }}
+                title={`Drag to move • Double click to rename • ${node.fullPath}`}
+                className="truncate font-mono text-[11px] tracking-tight shrink-0 max-w-[110px] hover:text-[#38BDF8] transition-colors cursor-grab active:cursor-grabbing"
+              >
+                {node.name}
               </span>
             )}
 
-            {/* Icon */}
-            {hasChildren ? (
-              isExpanded ? (
-                <FolderOpen className="w-3 h-3 text-[#38BDF8] shrink-0" />
-              ) : (
-                <Folder className="w-3 h-3 text-[#F59E0B] shrink-0" />
-              )
-            ) : null}
-
-            {/* Node Name */}
-            <span
-              className={`truncate font-mono text-[11px] ${
-                isSelected ? 'text-[#E2E8F0]' : ''
-              }`}
-              title={node.fullPath}
-            >
-              {node.name}
-            </span>
+            {hasWarnings && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[9px] font-mono leading-none bg-gradient-to-r from-[#EF444422] via-[#F9731618] to-transparent border border-white/5 shrink-0 pointer-events-none">
+                {node.untranslatedCount > 0 && (
+                  <span className="flex items-center gap-0.5 text-[#EF4444] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
+                    <span>{node.untranslatedCount}</span>
+                  </span>
+                )}
+                {node.issueCount > 0 && (
+                  <span className="flex items-center gap-0.5 text-[#F97316] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#F97316]" />
+                    <span>{node.issueCount}</span>
+                  </span>
+                )}
+                {node.fuzzyCount > 0 && (
+                  <span className="flex items-center gap-0.5 text-[#F59E0B] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
+                    <span>{node.fuzzyCount}</span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Quick Node Actions on hover & Stats */}
-          <div className="flex items-center gap-1 shrink-0 ml-1">
-            {/* Quick Add Subcategory Action */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setParentPathForNewCategory(node.fullPath);
-                setNewCategoryPath(`${node.fullPath} / `);
-                setIsAddingCategory(true);
-              }}
-              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-[#2D3748] rounded text-[#64748B] hover:text-[#38BDF8] transition-opacity"
-              title={`${t('category.addSubcategory')}: ${node.fullPath}`}
-            >
-              <Plus className="w-3 h-3" />
-            </button>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onCreateKeyInCategory?.(node.fullPath);
-              }}
-              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-[#2D3748] rounded text-[#64748B] hover:text-[#4ADE80] transition-opacity"
-              title={`${t('category.createKey')}: ${node.fullPath}`}
-            >
-              <KeyRound className="w-3 h-3" />
-            </button>
-
-            {/* Quick Assign active string to this category */}
-            {activeEntryId && onAssignActiveEntryToCategory && (
+          {/* Правая часть */}
+          <div className="flex items-center gap-1 shrink-0 ml-2">
+            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onAssignActiveEntryToCategory(node.fullPath);
+                  onCreateKeyInCategory?.(node.fullPath);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-[#2D3748] rounded text-[#64748B] hover:text-[#4ADE80] transition-opacity"
-                title={`${t('category.assignToCategory')}: ${node.fullPath}`}
+                className="p-1 rounded hover:bg-[#2D3748] text-[#64748B] hover:text-[#4ADE80] transition-colors"
+                title={`New Key in "${node.name}"`}
               >
-                <Check className="w-3 h-3" />
+                <FilePlus className="w-3 h-3" />
               </button>
-            )}
 
-            {node.issueCount > 0 && (
-              <span
-                className="text-[9px] px-1 py-0.2 rounded bg-[#EF44441A] text-rose-400 font-mono border border-[#EF444433]"
-                title={`${node.issueCount} validation issues`}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setParentPathForNewCategory(node.fullPath);
+                  setNewCategoryPath(`${node.fullPath} / `);
+                  setIsAddingCategory(true);
+                }}
+                className="p-1 rounded hover:bg-[#2D3748] text-[#64748B] hover:text-[#38BDF8] transition-colors"
+                title={`New Subfolder in "${node.name}"`}
               >
-                !{node.issueCount}
-              </span>
-            )}
+                <FolderPlus className="w-3 h-3" />
+              </button>
 
-            {node.untranslatedCount > 0 && (
-              <span
-                className="text-[9px] px-1 py-0.2 rounded bg-[#EF44441A] text-[#EF4444] font-mono border border-[#EF444433]"
-                title={`${node.untranslatedCount} untranslated strings`}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteCategory?.(node.fullPath);
+                }}
+                className="p-1 rounded hover:bg-rose-950/40 text-[#64748B] hover:text-[#EF4444] transition-colors"
+                title={`Delete category "${node.name}"`}
               >
-                {node.untranslatedCount}
-              </span>
-            )}
-
-            {node.fuzzyCount > 0 && (
-              <span
-                className="text-[9px] px-1 py-0.2 rounded bg-[#F59E0B1A] text-[#F59E0B] font-mono border border-[#F59E0B33]"
-                title={`${node.fuzzyCount} fuzzy strings`}
-              >
-                ~{node.fuzzyCount}
-              </span>
-            )}
+                <Trash2 className="w-3 h-3" />
+              </button>
+            </div>
 
             <span
-              className={`text-[10px] font-mono px-1 rounded ${
-                isSelected ? 'text-[#38BDF8] font-bold' : 'text-[#64748B]'
+              className={`text-[10px] font-mono px-1.5 py-0.2 rounded border ${
+                isSelected
+                  ? 'bg-[#090B0E] border-[#38BDF833] text-[#38BDF8]'
+                  : 'bg-[#090B0E]/60 border-[#2D3139]/40 text-[#64748B]'
               }`}
             >
               {node.totalCount}
@@ -334,16 +451,9 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
           </div>
         </div>
 
-        {/* Recursive Children with Tree Structure */}
         {hasChildren && isExpanded && (
-          <div className="flex flex-col relative">
-            {node.children.map((child, idx) =>
-              renderTreeNode(
-                child,
-                idx === node.children.length - 1,
-                [...ancestorIsLast, isLastChild]
-              )
-            )}
+          <div className="flex flex-col relative before:absolute before:left-[15px] before:top-0 before:bottom-2 before:w-[1px] before:bg-[#2D3139]/50">
+            {node.children.map((child) => renderTreeNode(child))}
           </div>
         )}
       </div>
@@ -353,9 +463,15 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
   return (
     <aside
       id="openpot-sidebar-container"
+      onDragOver={(e) => {
+        if (draggedCategoryPath) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+      }}
       className="w-full border-r border-[#2D3139] bg-[#16191E] flex flex-col h-full select-none text-[#E2E8F0] overflow-hidden relative"
     >
-      {/* 1. Global Message ID & String Search Bar */}
+      {/* 1. Поиск */}
       <div className="p-2.5 border-b border-[#2D3139] bg-[#16191E] shrink-0">
         <div className="relative">
           <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-[#64748B]" />
@@ -379,119 +495,105 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
         </div>
       </div>
 
-      {/* 2. Quick Status Filters (Resizable Vertical Section) */}
+      {/* 2. Фильтры статусов */}
       <div
         ref={statusFiltersRef}
         style={{ height: `${statusFiltersHeight}px`, minHeight: '90px' }}
-        className="p-2.5 overflow-y-auto space-y-1 bg-[#16191E] shrink-0 custom-scrollbar"
+        className="p-2 overflow-y-auto space-y-0.5 bg-[#16191E] shrink-0 custom-scrollbar"
       >
-        <div className="flex items-center justify-between text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1 px-1">
+        <div className="flex items-center justify-between text-[10px] font-bold text-[#64748B] uppercase tracking-wider mb-1.5 px-1.5 pt-0.5">
           <span>{t('sidebar.statusFilters')}</span>
           {filterStatus !== 'all' && (
             <button
               onClick={() => onFilterStatusChange('all')}
-              className="text-[#38BDF8] hover:underline cursor-pointer lowercase text-[10px] font-normal"
+              className="text-[#38BDF8] hover:text-white transition-colors cursor-pointer text-[10px] font-mono normal-case flex items-center gap-1"
+              title="Reset status filter"
             >
-              {t('sidebar.clear')}
+              <span>{t('sidebar.clear')}</span>
+              <span className="text-xs leading-none">×</span>
             </button>
           )}
         </div>
 
-        <button
-          onClick={() => onFilterStatusChange('all')}
-          className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-            filterStatus === 'all'
-              ? 'bg-[#2D3748] text-white font-medium shadow-xs'
-              : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5 text-[#3B82F6]" />
-            <span>{t('sidebar.allStrings')}</span>
-          </div>
-          <span className="text-[10px] font-mono text-[#64748B]">{stats.total}</span>
-        </button>
+        {[
+          {
+            id: 'all' as FilterStatus,
+            label: t('sidebar.allStrings'),
+            icon: Layers,
+            iconColor: 'text-[#3B82F6]',
+            count: stats.total,
+          },
+          {
+            id: 'untranslated' as FilterStatus,
+            label: t('sidebar.untranslated'),
+            icon: FileQuestion,
+            iconColor: 'text-[#EF4444]',
+            count: stats.untranslated,
+            badge: stats.untranslated > 0 ? 'bg-[#EF44441A] text-[#EF4444] border-[#EF444433]' : undefined,
+          },
+          {
+            id: 'fuzzy' as FilterStatus,
+            label: t('sidebar.fuzzy'),
+            icon: Clock,
+            iconColor: 'text-[#F59E0B]',
+            count: stats.fuzzy,
+            badge: stats.fuzzy > 0 ? 'bg-[#F59E0B1A] text-[#F59E0B] border-[#F59E0B33]' : undefined,
+          },
+          {
+            id: 'issues' as FilterStatus,
+            label: t('sidebar.linterIssues'),
+            icon: AlertTriangle,
+            iconColor: 'text-rose-400',
+            count: stats.issues,
+            badge: stats.issues > 0 ? 'bg-rose-950/40 text-rose-400 border-rose-800/40' : undefined,
+          },
+          {
+            id: 'plurals' as FilterStatus,
+            label: t('sidebar.pluralForms'),
+            icon: Hash,
+            iconColor: 'text-[#4ADE80]',
+            count: stats.plurals,
+          },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = filterStatus === item.id;
 
-        <button
-          onClick={() => onFilterStatusChange('untranslated')}
-          className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-            filterStatus === 'untranslated'
-              ? 'bg-[#2D3748] text-white font-medium shadow-xs'
-              : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <FileQuestion className="w-3.5 h-3.5 text-[#EF4444]" />
-            <span>{t('sidebar.untranslated')}</span>
-          </div>
-          <span
-            className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
-              stats.untranslated > 0 ? 'bg-[#EF44441A] text-[#EF4444]' : 'text-[#64748B]'
-            }`}
-          >
-            {stats.untranslated}
-          </span>
-        </button>
+          return (
+            <button
+              key={item.id}
+              onClick={() => onFilterStatusChange(item.id)}
+              className={`w-full flex items-center justify-between h-7 px-2 rounded-md text-xs cursor-pointer transition-colors relative ${
+                isActive
+                  ? 'bg-[#1E293B] text-white font-medium shadow-xs'
+                  : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
+              }`}
+            >
+              {isActive && (
+                <div className="absolute left-0 top-1 bottom-1 w-0.5 bg-[#38BDF8] rounded-r" />
+              )}
 
-        <button
-          onClick={() => onFilterStatusChange('fuzzy')}
-          className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-            filterStatus === 'fuzzy'
-              ? 'bg-[#2D3748] text-white font-medium shadow-xs'
-              : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-[#F59E0B]" />
-            <span>{t('sidebar.fuzzy')}</span>
-          </div>
-          <span
-            className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
-              stats.fuzzy > 0 ? 'bg-[#F59E0B1A] text-[#F59E0B]' : 'text-[#64748B]'
-            }`}
-          >
-            {stats.fuzzy}
-          </span>
-        </button>
+              <div className="flex items-center gap-2 min-w-0">
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? item.iconColor : 'text-[#64748B]'}`} />
+                <span className="truncate">{item.label}</span>
+              </div>
 
-        <button
-          onClick={() => onFilterStatusChange('issues')}
-          className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-            filterStatus === 'issues'
-              ? 'bg-[#2D3748] text-white font-medium shadow-xs'
-              : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
-            <span>{t('sidebar.linterIssues')}</span>
-          </div>
-          <span
-            className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
-              stats.issues > 0 ? 'bg-[#EF44441A] text-rose-400' : 'text-[#64748B]'
-            }`}
-          >
-            {stats.issues}
-          </span>
-        </button>
-
-        <button
-          onClick={() => onFilterStatusChange('plurals')}
-          className={`w-full flex items-center justify-between px-2 py-1 rounded text-xs cursor-pointer transition-colors ${
-            filterStatus === 'plurals'
-              ? 'bg-[#2D3748] text-white font-medium shadow-xs'
-              : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Hash className="w-3.5 h-3.5 text-[#4ADE80]" />
-            <span>{t('sidebar.pluralForms')}</span>
-          </div>
-          <span className="text-[10px] font-mono text-[#64748B]">{stats.plurals}</span>
-        </button>
+              <span
+                className={`text-[10px] font-mono px-1.5 py-0.2 rounded min-w-[22px] text-center border ${
+                  item.badge
+                    ? item.badge
+                    : isActive
+                    ? 'bg-[#090B0E] border-[#38BDF833] text-[#38BDF8]'
+                    : 'bg-[#090B0E]/60 border-[#2D3139]/40 text-[#64748B]'
+                }`}
+              >
+                {item.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Resizer Split between Status Filters & Nested Categories */}
+      {/* Делитель */}
       <div
         onMouseDown={() => setIsDraggingSplit(true)}
         onDoubleClick={() => setStatusFiltersHeight(205)}
@@ -503,18 +605,17 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
         <GripHorizontal className="w-4 h-2.5 text-[#64748B] group-hover:text-white opacity-70 group-hover:opacity-100 transition-opacity" />
       </div>
 
-      {/* 3. Nested Hierarchical Categories Header */}
+      {/* 3. Заголовок категорий */}
       <div className="px-3 pt-2 pb-1 flex items-center justify-between shrink-0 bg-[#16191E]">
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">
             {t('sidebar.nestedCategories')}
           </span>
           <span className="px-1.5 py-0.2 rounded bg-[#090B0E] border border-[#2D3139] text-[#38BDF8] text-[9px] font-mono">
-            {categoryTree.length} {t('sidebar.roots')}
+            {categoryTree.length}
           </span>
         </div>
 
-        {/* Tree controls: Add Category, Expand All / Collapse All & Reset */}
         <div className="flex items-center gap-1">
           <button
             onClick={() => {
@@ -541,22 +642,14 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
           >
             <ChevronsUp className="w-3 h-3" />
           </button>
-          {selectedCategory && (
-            <button
-              onClick={() => onSelectCategory(null)}
-              className="text-[10px] text-[#3B82F6] hover:underline cursor-pointer ml-1 font-mono"
-            >
-              {t('sidebar.clear')}
-            </button>
-          )}
         </div>
       </div>
 
-      {/* Inline New Category Input Box */}
+      {/* Создание категории */}
       {isAddingCategory && (
         <div className="px-2.5 py-2 bg-[#090B0E] border-b border-[#2D3139] shrink-0">
           <div className="text-[10px] font-semibold text-[#E2E8F0] mb-1 flex items-center gap-1">
-            <FolderPlus className="w-3 h-3 text-[#F59E0B]" />
+            <FolderPlus className="w-3 h-3 text-[#38BDF8]" />
             <span>
               {parentPathForNewCategory
                 ? `${t('category.addSubcategory')}: ${parentPathForNewCategory}`
@@ -604,38 +697,51 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
               {t('common.cancel')}
             </button>
           </div>
-          <p className="text-[9px] text-[#64748B] mt-1">{t('category.categoryHelp')}</p>
         </div>
       )}
 
-      {/* Breadcrumb if a deep category is active */}
-      {selectedCategory && (
-        <div className="px-3 py-1 bg-[#090B0E] border-y border-[#2D3139] flex items-center justify-between text-[10px] text-[#38BDF8] font-mono shrink-0">
-          <span className="truncate" title={selectedCategory}>
-            📁 {selectedCategory}
-          </span>
-          <button
-            onClick={() => onSelectCategory(null)}
-            className="text-[#64748B] hover:text-white ml-2 text-xs"
-            title="Remove category filter"
-          >
-            ×
-          </button>
-        </div>
-      )}
+      {/* 4. Дерево категорий */}
+      <div
+        onDragOver={(e) => {
+          if (draggedCategoryPath) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            setIsDragOverRoot(true);
+          }
+        }}
+        onDragLeave={() => setIsDragOverRoot(false)}
+        onDrop={handleDropOnRoot}
+        className={`flex-1 overflow-y-auto px-1 py-1 space-y-0.5 custom-scrollbar transition-colors ${
+          isDragOverRoot ? 'bg-[#38BDF808] border-2 border-dashed border-[#38BDF840] rounded-md m-1' : ''
+        }`}
+      >
+        {categoryTree.map((rootNode) => renderTreeNode(rootNode))}
 
-      {/* Category Tree Nodes List (Flex-1 overflow) */}
-      <div className="flex-1 overflow-y-auto px-2 py-1 space-y-0.5 custom-scrollbar">
-        {filteredTree.map((rootNode, idx) =>
-          renderTreeNode(rootNode, idx === filteredTree.length - 1)
-        )}
-
-        {filteredTree.length === 0 && (
+        {categoryTree.length === 0 && (
           <div className="text-center py-6 text-[#64748B] text-xs">
             {t('sidebar.noMatchingCategories')}
           </div>
         )}
       </div>
+
+      {/* 5. Футер активной категории */}
+      {selectedCategory && (
+        <div className="px-2.5 py-1.5 bg-[#090B0E] border-t border-[#2D3139] flex items-center justify-between text-[11px] text-[#38BDF8] font-mono shrink-0 shadow-lg animate-in fade-in duration-150">
+          <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+            <Filter className="w-3 h-3 text-[#38BDF8] shrink-0" />
+            <span className="truncate" title={selectedCategory}>
+              {selectedCategory}
+            </span>
+          </div>
+          <button
+            onClick={() => onSelectCategory(null)}
+            className="p-1 rounded hover:bg-[#1C2128] text-[#64748B] hover:text-[#E2E8F0] transition-colors ml-1 shrink-0 cursor-pointer"
+            title="Clear category filter"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

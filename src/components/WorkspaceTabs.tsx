@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, Layers, X } from 'lucide-react';
 import { Workspace } from '../types/gettext';
 
 interface WorkspaceTabsProps {
@@ -85,44 +85,52 @@ export const WorkspaceTabs: React.FC<WorkspaceTabsProps> = ({
           const stringCount = ws.potFile.entries.length;
 
           return (
-            <div
-              key={ws.id}
-              onPointerDown={(e) => handlePointerDown(ws.id, e)}
-              onPointerEnter={() => handlePointerEnter(ws.id)}
-              className={`group flex items-center gap-2 px-3 h-full text-xs font-medium cursor-pointer transition-colors border-x border-[#2D3139] select-none ${
-                isActive
-                  ? 'bg-[#16191E] border-t-2 border-t-[#3B82F6] text-[#E2E8F0] shadow-xs'
-                  : 'bg-[#090B0E] text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0] border-t-2 border-t-transparent'
-              } ${isDragging ? 'opacity-50 !bg-[#1E293B]' : ''}`}
-            >
-              <span className={`pointer-events-none ${isActive ? 'text-[#3B82F6] font-bold' : 'text-[#64748B]'}`}>◇</span>
-              
-              <span className="truncate max-w-[150px] font-mono text-[11px] pointer-events-none">
-                {ws.name}
-              </span>
-              
-              {ws.isModified && (
-                <span className="text-[#38BDF8] ml-1 pointer-events-none">*</span>
-              )}
-              
-              <div className="flex items-center gap-1.5 ml-1 pointer-events-none">
-                <span className="text-[10px] px-1 py-0.2 rounded bg-[#090B0E] text-[#64748B] font-mono border border-[#2D3139]/60">
-                  {poCount}L • {stringCount}S
-                </span>
-              </div>
+  <div
+    key={ws.id}
+    onPointerDown={(e) => handlePointerDown(ws.id, e)}
+    onPointerEnter={() => handlePointerEnter(ws.id)}
+    className={`group relative flex items-center gap-2 px-3 h-full text-xs font-medium cursor-pointer transition-colors border-x border-[#2D3139] select-none ${
+      isActive
+        ? 'bg-[#16191E] border-t-2 border-t-[#3B82F6] text-[#E2E8F0] shadow-xs'
+        : 'bg-[#090B0E] text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0] border-t-2 border-t-transparent'
+    } ${isDragging ? 'opacity-50 !bg-[#1E293B]' : ''}`}
+  >
+    <Layers 
+      className={`w-3.5 h-3.5 shrink-0 pointer-events-none transition-colors -translate-y-0.5 ${
+        isActive ? 'text-[#38BDF8]' : 'text-[#64748B] group-hover:text-[#94A3B8]'
+      }`} 
+    />
 
-              {workspaces.length > 1 && (
-                <button
-                  onClick={(e) => onCloseWorkspace(ws.id, e)}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  className="p-0.5 rounded hover:bg-[#2D3139] text-[#64748B] hover:text-[#E2E8F0] transition-colors opacity-0 group-hover:opacity-100 cursor-pointer ml-1 z-10"
-                  title="Close Workspace"
-                >
-                  <X className="w-3 h-3 pointer-events-none" />
-                </button>
-              )}
-            </div>
-          );
+    <span className="truncate max-w-[140px] font-mono text-[11px] pointer-events-none">
+      {ws.name}
+    </span>
+
+    {ws.isModified && (
+      <span 
+        className="w-1 h-1 rounded-full bg-[#38BDF8] shrink-0 pointer-events-none -translate-y-1 -translate-x-1.5" 
+        title="Unsaved changes"
+      />
+    )}
+
+    <div className="flex items-center pointer-events-none">
+      <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#090B0E] text-[#64748B] font-mono border border-[#2D3139]/60 leading-none">
+        {poCount}L • {stringCount}S
+      </span>
+    </div>
+
+
+    {workspaces.length > 1 && (
+      <button
+        onClick={(e) => onCloseWorkspace(ws.id, e)}
+        onPointerDown={(e) => e.stopPropagation()}
+        className="p-1 rounded hover:bg-[#2D3139] text-[#64748B] hover:text-[#E2E8F0] transition-all opacity-0 group-hover:opacity-100 cursor-pointer ml-0.5"
+        title="Close Workspace"
+      >
+        <X className="w-3 h-3 pointer-events-none" />
+      </button>
+    )}
+  </div>
+);
         })}
 
         <button

@@ -170,7 +170,10 @@ export default function App() {
     handleAddCategory, handleSelectEntry, handleSelectFile, handleUpdateEntry, handleSyncPotEntry, handleUpdateCategory,
     handleAddKey, handleDeleteKey, handleAddLanguage, handleDeleteLanguage, handleToggleFuzzy, handleMatrixUpdateTranslation,
     handleRenameDomain, handleCreateWorkspace, handleCloseWorkspace, handleBatchApplyTm, handleClearAllFuzzy, handleMarkUntranslatedFuzzy,
-    handleReorderWorkspaces
+    handleReorderWorkspaces,
+    handleRenameCategory,
+    handleReorderCategories,
+    handleDeleteCategory
   } = useWorkspaceActions(activeWorkspaceId, currentWorkspace, setWorkspaces, setActiveWorkspaceId, settings, triggerDiskSyncForPo, showToast, t);
 
   useEffect(() => {
@@ -278,7 +281,20 @@ export default function App() {
     return map;
   }, [issuesMap]);
 
-  const categoryData = useMemo(() => buildCategoryTree(activeEntries, categoryIssuesCountMap, currentWorkspace.customCategories || [], settings.autoGenerateCategories ?? true), [activeEntries, categoryIssuesCountMap, currentWorkspace.customCategories, settings.autoGenerateCategories]);
+  const categoryData = useMemo(() => {
+  if (!currentWorkspace) return { tree: [], list: [] };
+  return buildCategoryTree(
+    activeEntries,
+    categoryIssuesCountMap,
+    currentWorkspace.customCategories || [],
+    settings.autoGenerateCategories ?? true
+  );
+  }, [
+    activeEntries,
+    categoryIssuesCountMap,
+    currentWorkspace?.customCategories,
+    settings.autoGenerateCategories,
+  ]);
 
   const filteredEntries = useMemo(() => activeEntries.filter((entry) => {
     if (searchQuery.trim()) {
@@ -540,19 +556,49 @@ export default function App() {
         <main className="flex-1 flex overflow-hidden relative">
           <div style={{ width: `${sidebarWidth}px`, minWidth: `${sidebarWidth}px` }} className="h-full shrink-0 flex overflow-hidden">
             <SidebarCategories
-              categoryTree={categoryData.tree}
-              selectedCategory={selectedCategory}
-              onSelectCategory={setSelectedCategory}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              filterStatus={filterStatus}
-              onFilterStatusChange={setFilterStatus}
-              stats={stats}
-              onAddCategory={handleAddCategory}
-              onAssignActiveEntryToCategory={(catPath) => { if (activeEntryId) handleUpdateCategory(activeEntryId, catPath); }}
-              onCreateKeyInCategory={(catPath) => { setSelectedCategory(catPath); setIsNewKeyModalOpen(true); }}
-              activeEntryId={activeEntryId}
-            />
+            categoryTree={categoryData.tree}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            filterStatus={filterStatus}
+            onFilterStatusChange={setFilterStatus}
+            stats={stats}
+            onAddCategory={handleAddCategory}
+            onRenameCategory={(oldPath, newPath) => {
+              handleRenameCategory(oldPath, newPath);
+              if (selectedCategory === oldPath) {
+                setSelectedCategory(newPath);
+              }
+            }}
+            onDeleteCategory={(catPath) => {
+            handleDeleteCategory(catPath);
+            if (selectedCategory === catPath) {
+              setSelectedCategory(null);
+            }
+           }}
+            onReorderCategories={handleReorderCategories}
+            onCreateKeyInCategory={(catPath) => {
+              const baseMsgid = 'NEW_KEY';
+              let finalMsgid = baseMsgid;
+              let counter = 1;
+              const existing = new Set(currentWorkspace.potFile.entries.map((e) => e.msgid));
+              while (existing.has(finalMsgid)) {
+                finalMsgid = `${baseMsgid}_${counter++}`;
+              }
+              const newEntry: PoEntry = {
+                id: `entry_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                msgid: finalMsgid,
+                msgstr: [''],
+                comments: [],
+                extractedComments: [],
+                references: [],
+                flags: [],
+                category: catPath,
+              };
+              handleAddKey(newEntry);
+            }}
+          />
           </div>
 
           <div
@@ -563,14 +609,20 @@ export default function App() {
 
           <div className="flex-1 min-w-[260px] h-full flex flex-col overflow-hidden">
             <StringListTable
-              entries={filteredEntries}
-              activeEntryId={activeEntryId}
-              onSelectEntry={handleSelectEntry}
-              onToggleFuzzy={handleToggleFuzzy}
-              onDeleteEntry={handleDeleteKey}
-              issuesMap={issuesMap}
-              isPotTemplate={isPotActive}
-            />
+            entries={filteredEntries}
+            activeEntryId={activeEntryId}
+            onSelectEntry={handleSelectEntry}
+            onToggleFuzzy={handleToggleFuzzy}
+            onDeleteEntry={handleDeleteKey}
+            issuesMap={issuesMap}
+            isPotTemplate={isPotActive}
+            onRenameEntry={(entryId, newMsgid) => {
+              const target = activeEntries.find((e) => e.id === entryId);
+              if (target) {
+                handleSyncPotEntry({ ...target, msgid: newMsgid });
+              }
+            }}
+          />
           </div>
 
           <div

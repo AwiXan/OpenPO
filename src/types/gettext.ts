@@ -169,6 +169,7 @@ export interface WorkspaceSnapshot {
   poFiles: PoFileRecord[];
   activeFileId: string;
   activeEntryId: string | null;
+  customCategories?: string[];
 }
 
 export interface LocalDirectoryState {

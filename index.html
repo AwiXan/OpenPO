@@ -5,6 +5,7 @@
     <meta name="color-scheme" content="dark" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OpenPOT - GNU gettext PO/POT Editor v1.0</title>
+
     <meta name="description" content="OpenPOT - Professional GNU gettext .po and .pot localization editor with automatic .mo compilation, modular domain support, and translation memory." />
     <meta property="og:title" content="OpenPOT Localization Editor" />
     <meta property="og:type" content="website" />
@@ -42,7 +43,7 @@
       }
 
       .splash-logo {
-        font-size: 34px;
+        font-size: 48px;
         font-weight: 800;
         letter-spacing: -0.5px;
         color: #FFFFFF;
@@ -78,7 +79,7 @@
         width: 40%;
         background: #3B82F6;
         border-radius: 999px;
-        animation: splash-loading 1.2s infinite ease-in-out;
+        animation: splash-loading 0.5s infinite ease-in-out;
       }
 
       @keyframes splash-loading {
@@ -90,8 +91,13 @@
   </head>
   <body>
     <div id="app-splashscreen">
-      <div class="splash-logo">Open<span>POT</span></div>
-      <div class="splash-subtitle">Localization Editor</div>
+      <img 
+        src="/icons/128x128.png" 
+        alt="OpenPOT Logo" 
+        style="width: 128px; height: 128px; margin-bottom: 16px; object-fit: contain;" 
+      />
+      <!-- <div class="splash-logo">Open<span>POT</span></div> !-->
+      <div class="splash-subtitle">OpenPOT</div>
       <div class="splash-loader"></div>
     </div>
 

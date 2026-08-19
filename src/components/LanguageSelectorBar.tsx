@@ -214,7 +214,7 @@ export const LanguageSelectorBar: React.FC<LanguageSelectorBarProps> = ({
 
               {/* Quick Actions (Download .PO, Download .MO, Delete) */}
               <div className="flex items-center gap-0.5 opacity-40 group-hover/tab:opacity-100 transition-opacity pl-1 border-l border-[#2D3139] shrink-0">
-                <button
+                {/* <button
                   onClick={(e) => onDownloadPo(po, e)}
                   className="p-0.5 rounded hover:bg-[#2D3139] text-[#94A3B8] hover:text-[#E2E8F0]"
                   title={t('langBar.downloadPo')}
@@ -227,7 +227,7 @@ export const LanguageSelectorBar: React.FC<LanguageSelectorBarProps> = ({
                   title={t('langBar.downloadMo')}
                 >
                   <Binary className="w-3 h-3 text-[#4ADE80]" />
-                </button>
+                </button> */}
                 {workspace.poFiles.length > 1 && (
                   <button
                     onClick={(e) => onDeleteLanguage(po.id, e)}

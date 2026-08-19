@@ -309,6 +309,11 @@ export function buildCategoryTree(
     }
   }
 
+  const getCustomOrder = (fullPath: string) => {
+    const idx = customCategories.indexOf(fullPath);
+    return idx === -1 ? 999999 : idx;
+  };
+
   // Convert mutable tree to immutable CategoryNode array
   function convertNode(mutable: MutableNode): CategoryNode {
     const children = Array.from(mutable.children.values())
@@ -316,6 +321,9 @@ export function buildCategoryTree(
       .sort((a, b) => {
         if (a.name === 'General') return 1;
         if (b.name === 'General') return -1;
+        const orderA = getCustomOrder(a.fullPath);
+        const orderB = getCustomOrder(b.fullPath);
+        if (orderA !== orderB) return orderA - orderB;
         return a.name.localeCompare(b.name);
       });
 
@@ -340,6 +348,9 @@ export function buildCategoryTree(
     .sort((a, b) => {
       if (a.name === 'General') return 1;
       if (b.name === 'General') return -1;
+      const orderA = getCustomOrder(a.fullPath);
+      const orderB = getCustomOrder(b.fullPath);
+      if (orderA !== orderB) return orderA - orderB;
       return a.name.localeCompare(b.name);
     });
 
