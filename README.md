@@ -10,7 +10,8 @@ So, here it is:
 
 **OpenPOT** is a modern and fast cross-platform editor for GNU **gettext** (`.po`, `.pot`, `.mo`) localization catalogs, built for game and application developers. Powered by Tauri, React, TypeScript, and Tailwind CSS.
 
-<img width="1917" height="1031" alt="image" src="https://github.com/user-attachments/assets/dfbd76a0-c581-4f54-8bbb-4f2f920751c6" />
+<img width="1918" height="1030" alt="image" src="https://github.com/user-attachments/assets/54349b7d-724f-4a50-ba35-86b6e8a58411" />
+
 
 
 
