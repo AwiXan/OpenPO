@@ -270,7 +270,7 @@ export function useWorkspaceActions(
         const scheme = settings.poNamingScheme || 'domain_lang';
         const filename = formatPoFilename(domain, langCode, scheme);
         
-
+        // 👇 Оставляем ТОЛЬКО этот обновленный poHeader
         const poHeader: PoHeader = { 
           projectIdVersion: w.potFile.header.projectIdVersion || `${w.name} 1.0`, 
           language: langCode, 
@@ -281,7 +281,7 @@ export function useWorkspaceActions(
           xGenerator: 'PoCraft Gettext Studio', 
           rawHeaders: {} 
         };
-        const poHeader: PoHeader = { projectIdVersion: w.potFile.header.projectIdVersion || `${w.name} 1.0`, language: langCode, pluralForms, mimeVersion: '1.0', contentType: 'text/plain; charset=UTF-8', contentTransferEncoding: '8bit', xGenerator: 'PoCraft Gettext Studio', rawHeaders: {} };
+        
         const rule = getPluralRuleForLanguage(langCode, pluralForms);
         const poEntries: PoEntry[] = w.potFile.entries.map((potEntry) => ({ ...potEntry, msgstr: potEntry.msgidPlural ? Array.from({ length: rule.nplurals }, () => '') : [''], flags: [] }));
         const newPoRecord: PoFileRecord = { id: `po_${langCode}_${Date.now()}`, filename, language: langCode, languageName: langName, header: poHeader, entries: poEntries, isModified: true };
