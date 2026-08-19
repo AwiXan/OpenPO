@@ -319,7 +319,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     <span className="text-[10px] text-[#64748B] font-mono">.mo</span>
                   </button>
 
-                  {/* Внутри активного меню FILE (после open файлов) */}
                   <div className="border-t border-[#2D3139] my-1" />
                   
                   <button

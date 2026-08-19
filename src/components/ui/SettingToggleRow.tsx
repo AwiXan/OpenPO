@@ -17,7 +17,7 @@ export const SettingToggleRow: React.FC<SettingToggleRowProps> = ({
   onChange,
 }) => {
   return (
-    // Добавил hover:border-[#3B82F644] для легкой реакции на наведение
+
     <div className="bg-[#090B0E] p-4 rounded-lg border border-[#2D3139] flex items-center justify-between gap-4 transition-colors hover:border-[#3B82F644]">
       <div>
         <label className="text-white font-semibold flex items-center gap-1.5 cursor-pointer" onClick={() => onChange(!checked)}>

@@ -75,6 +75,17 @@ export default function App() {
     return initial;
   });
 
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      if (!import.meta.env.DEV) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => document.removeEventListener('contextmenu', handleContextMenu);
+  }, []);
+
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string>(() => {
     return localStorage.getItem('openpot_session_active_id') || workspaces[0]?.id || '';
   });

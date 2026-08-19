@@ -19,7 +19,7 @@ export const Toggle: React.FC<ToggleProps> = ({ checked, onChange, disabled = fa
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
     >
       <span
-        // 16px ширина ползунка + 2px отступы = идеально ровно
+
         className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${
           checked ? 'translate-x-[18px]' : 'translate-x-[2px]'
         }`}

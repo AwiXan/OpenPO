@@ -40,7 +40,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const { t, currentUiLang, setUiLanguage } = useTranslation();
   const [localSettings, setLocalSettings] = useState<AppSettings>({
-    csvPluralSuffix: '_P%d', // Дефолтное значение, если его еще нет
+    csvPluralSuffix: '_P%d',
     ...settings,
   });
   const [localDomain, setLocalDomain] = useState<string>(domainName);

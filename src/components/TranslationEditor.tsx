@@ -128,7 +128,6 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
       const timer = setTimeout(() => {
         if (activeTextareaRef.current) {
           activeTextareaRef.current.focus();
-          // Ставим курсор в самый конец текста
           const valLen = activeTextareaRef.current.value.length;
           activeTextareaRef.current.setSelectionRange(valLen, valLen);
         }
