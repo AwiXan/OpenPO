@@ -18,7 +18,9 @@ import {
   Unlink,
   Check,
   HelpCircle,
+  FileJson,
   Clock,
+  Upload,
 } from 'lucide-react';
 import { Workspace, LocalDirectoryState } from '../types/gettext';
 import { useTranslation, SUPPORTED_UI_LANGUAGES, UiLanguage } from '../lib/i18n';
@@ -27,6 +29,8 @@ interface TopHeaderProps {
   currentWorkspace: Workspace;
   onOpenNewKeyModal: () => void;
   onOpenAddLanguageModal: () => void;
+  onImportCsvJson?: () => void;
+  onExportCsvJson?: () => void;
   onOpenRawPoModal: () => void;
   onOpenMoCompilerModal: () => void;
   onOpenBatchModal: () => void;
@@ -64,6 +68,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenSettingsModal,
   onOpenAboutModal,
   onImportFile,
+  onImportCsvJson,
+  onExportCsvJson,
   onOpenLocalFolder,
   localDirState,
   onSyncLocalFolder,
@@ -328,6 +334,35 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                       <span>{t('menu.exportZip')}</span>
                     </div>
                     <span className="text-[10px] text-[#64748B] font-mono">.zip</span>
+                  </button>
+
+                  {/* Внутри активного меню FILE (после open файлов) */}
+                  <div className="border-t border-[#2D3139] my-1" />
+                  
+                  <button
+                    onClick={() => {
+                      if (onImportCsvJson) onImportCsvJson();
+                      setActiveMenu(null);
+                    }}
+                    className="w-full px-3 py-1.5 flex items-center justify-between text-left text-[#E2E8F0] hover:bg-[#1E293B] hover:text-[#38BDF8] transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Upload className="w-4 h-4 text-[#10B981]" />
+                      <span>{t('menu.importCsvJson', 'Import CSV / JSON...')}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      if (onExportCsvJson) onExportCsvJson();
+                      setActiveMenu(null);
+                    }}
+                    className="w-full px-3 py-1.5 flex items-center justify-between text-left text-[#E2E8F0] hover:bg-[#1E293B] hover:text-[#38BDF8] transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FileJson className="w-4 h-4 text-[#FBBF24]" />
+                      <span>{t('menu.exportCsvJson', 'Export to CSV / JSON...')}</span>
+                    </div>
                   </button>
 
                   {localDirState.isConnected && (
@@ -829,6 +864,24 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               >
                 <Download className="w-3.5 h-3.5 text-[#3B82F6]" />
                 <span>{t('header.exportZip')}</span>
+              </button>
+              {/* Import CSV/JSON */}
+              <button
+                onClick={onImportCsvJson}
+                className="px-2.5 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] text-xs flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
+                title="Import strings from CSV or JSON files"
+              >
+                <Upload className="w-3.5 h-3.5 text-[#10B981]" />
+              </button>
+
+              {/* Export CSV/JSON */}
+              <button
+                onClick={onExportCsvJson}
+                className="px-2.5 py-1.5 rounded bg-[#1C2128] hover:bg-[#2D3748] text-[#94A3B8] hover:text-[#E2E8F0] text-xs flex items-center gap-1.5 border border-[#2D3139] transition-colors cursor-pointer"
+                title="Export translations to CSV or JSON formats"
+              >
+                <FileJson className="w-3.5 h-3.5 text-[#FBBF24]" />
+                <span className="hidden sm:inline">{t('header.exportCsvJson')}</span>
               </button>
             </div>
           </div>

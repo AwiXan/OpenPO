@@ -156,6 +156,9 @@ export interface AppSettings {
   autoCompileMoOnSave: boolean; // Auto generate .mo file in folder upon save
   autoNewlineOnEnter: boolean; // Pressing Enter creates natural newline
   showNewlinesVisible: boolean; // Show visible \n markers badge
+  autoCompileCsvOnSave?: boolean;
+  autoCompileJsonOnSave?: boolean;
+  csvPluralSuffix?: string;
 }
 
 export interface WorkspaceSnapshot {

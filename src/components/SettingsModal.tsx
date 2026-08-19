@@ -12,6 +12,8 @@ import {
   ArrowBigDown,
   Layers,
   CornerDownLeft,
+  FileJson, 
+  FileText,
   Eye
 } from 'lucide-react';
 import { AppSettings, PoNamingScheme } from '../types/gettext';
@@ -37,7 +39,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onRenameDomain,
 }) => {
   const { t, currentUiLang, setUiLanguage } = useTranslation();
-  const [localSettings, setLocalSettings] = useState<AppSettings>(settings);
+  const [localSettings, setLocalSettings] = useState<AppSettings>({
+    csvPluralSuffix: '_P%d', // Дефолтное значение, если его еще нет
+    ...settings,
+  });
   const [localDomain, setLocalDomain] = useState<string>(domainName);
   const [savedFeedback, setSavedFeedback] = useState(false);
   const [activeTab, setActiveTab] = useState<'language' | 'modular' | 'tm' | 'newlines' | 'git' | 'editor'>('modular');
@@ -65,6 +70,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       autoCompileMoOnSave: true,
       autoNewlineOnEnter: true,
       showNewlinesVisible: true,
+      autoCompileCsvOnSave: false,
+      autoCompileJsonOnSave: false,
+      csvPluralSuffix: '_P%d',
     };
     setLocalSettings(defaults);
   };
@@ -210,6 +218,53 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 checked={localSettings.autoCompileMoOnSave}
                 onChange={(checked) => setLocalSettings({ ...localSettings, autoCompileMoOnSave: checked })}
               />
+
+              <SettingToggleRow
+                icon={<FileJson className="w-4 h-4 text-[#FBBF24]" />}
+                title={t('settings.autoJsonTitle', 'Auto-export to JSON')}
+                description={t('settings.autoJsonDesc', 'Generate flat key-value .json files alongside your .po catalogs.')}
+                checked={localSettings.autoCompileJsonOnSave ?? false}
+                onChange={(checked) => setLocalSettings({ ...localSettings, autoCompileJsonOnSave: checked })}
+              />
+
+              <div className="bg-[#090B0E] p-4 rounded-lg border border-[#2D3139] flex flex-col gap-3 transition-colors hover:border-[#3B82F644]">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <label className="text-white font-semibold flex items-center gap-1.5 cursor-pointer" onClick={() => setLocalSettings({ ...localSettings, autoCompileCsvOnSave: !localSettings.autoCompileCsvOnSave })}>
+                      <FileText className="w-4 h-4 text-[#10B981]" />
+                      <span>{t('settings.autoCsvTitle', 'Auto-export to CSV')}</span>
+                    </label>
+                    <p className="text-[11px] text-[#64748B] mt-0.5">
+                      {t('settings.autoCsvDesc', 'Export a unified translations.csv matrix ideal for game engines.')}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={localSettings.autoCompileCsvOnSave}
+                    onClick={() => setLocalSettings({ ...localSettings, autoCompileCsvOnSave: !localSettings.autoCompileCsvOnSave })}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none ${
+                      localSettings.autoCompileCsvOnSave ? 'bg-[#3B82F6]' : 'bg-[#2D3139]'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${localSettings.autoCompileCsvOnSave ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+                  </button>
+                </div>
+                
+                {localSettings.autoCompileCsvOnSave && (
+                  <div className="pt-3 border-t border-[#1C2128] flex items-center gap-3">
+                    <label className="text-[#94A3B8] text-[11px] font-medium shrink-0">Plural Suffix Rule:</label>
+                    <input
+                      type="text"
+                      value={localSettings.csvPluralSuffix || '_P%d'}
+                      onChange={(e) => setLocalSettings({ ...localSettings, csvPluralSuffix: e.target.value })}
+                      placeholder="_P%d"
+                      className="w-24 bg-[#16191E] border border-[#2D3139] rounded px-2 py-1 text-xs text-white focus:border-[#3B82F6] outline-none font-mono"
+                    />
+                    <span className="text-[#64748B] text-[10px] italic">e.g. ITEM_COIN_P0, ITEM_COIN_P1</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

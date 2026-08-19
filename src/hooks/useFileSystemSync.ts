@@ -35,10 +35,9 @@ export function useFileSystemSync(
     }
   }, []);
 
-  // 1. DYNAMIC FOLDER STATE: Derived strictly from the currently active workspace
   const localDirState = useMemo<LocalDirectoryState>(() => {
     if (!currentWorkspace) {
-      return { isConnected: false, dirName: '', dirHandle: null, autoCompileMo: true, totalFiles: 0 };
+      return { isConnected: false, dirName: '', dirHandle: null, autoCompileMo: true, totalFiles: 0, savedFilesCount: 0 };
     }
     return {
       isConnected: !!currentWorkspace.localDirPath || !!currentWorkspace.localDirHandle,
@@ -46,6 +45,7 @@ export function useFileSystemSync(
       dirHandle: currentWorkspace.localDirHandle || null,
       autoCompileMo: settings.autoCompileMoOnSave ?? true,
       totalFiles: 1 + currentWorkspace.poFiles.length,
+      savedFilesCount: currentWorkspace.poFiles.length,
     };
   }, [currentWorkspace, settings.autoCompileMoOnSave]);
 
@@ -64,7 +64,7 @@ export function useFileSystemSync(
 
       const parsedPot = potFileScanned
         ? parsePoContent(potFileScanned.content)
-        : { header: { mimeVersion: '1.0', contentType: 'text/plain; charset=UTF-8', contentTransferEncoding: '8bit' }, entries: [] };
+        : parsePoContent('');
 
       const potRecord: PotFileRecord = {
         id: `pot_${Date.now()}`,
@@ -171,7 +171,7 @@ export function useFileSystemSync(
 
   const handleExportWorkspaceZip = async () => {
     if (!currentWorkspace) return;
-    
+
     const zip = new JSZip();
     const domain = currentWorkspace.domainName || currentWorkspace.potFile.domainName || 'messages';
     const wsFolder = zip.folder(currentWorkspace.name.replace(/[^a-zA-Z0-9_-]/g, '_')) || zip;
@@ -238,6 +238,13 @@ export function useFileSystemSync(
           }
         }
 
+        if (settings.autoCompileJsonOnSave) {
+          
+        }
+        if (settings.autoCompileCsvOnSave) {
+          
+        }
+
         setWorkspaces((prev) =>
           prev.map((w) => (w.id === activeWorkspaceId ? { ...w, isModified: false } : w))
         );
@@ -286,7 +293,7 @@ export function useFileSystemSync(
           const poContent = serializePoFile(poRecord.header, poRecord.entries, false);
           const cleanDir = dirPath.replace(/\\/g, '/');
           const fullPoPath = `${cleanDir}/${poFilename}`;
-          
+
           await writeNativeTextFile(fullPoPath, poContent);
 
           if (settings.autoCompileMoOnSave ?? true) {
