@@ -277,6 +277,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'common.close': 'Close',
     'common.fuzzy': 'Fuzzy',
     'common.fuzzyFull': 'Fuzzy (Needs Review)',
+    'common.loading': 'Loading...',
 
     // Git Module
     'git.title': 'Git Version Control',
@@ -648,6 +649,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'common.close': 'Закрыть',
     'common.fuzzy': 'Неточный',
     'common.fuzzyFull': 'Неточный (Требует проверки)',
+    'common.loading': 'Загрузка...',
 
     // Git Module
     'git.title': 'Контроль версий Git',
@@ -1017,6 +1019,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'common.close': 'Cerrar',
     'common.fuzzy': 'Dudoso',
     'common.fuzzyFull': 'Dudoso (Requiere revisión)',
+    'common.loading': 'Cargando...',
 
     // Git Module
     'git.title': 'Control de versiones Git',
@@ -1387,6 +1390,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'common.close': 'Fermer',
     'common.fuzzy': 'Flou',
     'common.fuzzyFull': 'Flou (À vérifier)',
+    'common.loading': 'Chargement...',
 
     // Git Module
     'git.title': 'Contrôle de version Git',
@@ -1757,6 +1761,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'common.close': 'Schließen',
     'common.fuzzy': 'Fuzzy',
     'common.fuzzyFull': 'Fuzzy (Überprüfung nötig)',
+    'common.loading': 'Laden...',
 
     // Git Module
     'git.title': 'Git-Versionskontrolle',
@@ -2127,6 +2132,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'common.close': '关闭',
     'common.fuzzy': '模糊',
     'common.fuzzyFull': '模糊（需复审）',
+    'common.loading': '加载中...',
 
     // Git Module
     'git.title': 'Git 版本控制',
@@ -2497,6 +2503,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'common.close': '閉じる',
     'common.fuzzy': 'あいまい',
     'common.fuzzyFull': 'あいまい（要確認）',
+    'common.loading': '読み込み中...',
 
     // Git Module
     'git.title': 'Git バージョン管理',

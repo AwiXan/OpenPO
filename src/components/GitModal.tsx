@@ -641,7 +641,7 @@ export const GitModal: React.FC<GitModalProps> = ({
                   ) : workingDiffLoading ? (
                     <div className="h-full flex items-center justify-center text-[#64748B] text-xs gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      {t('git.loadingDiff')}
+                      {t('common.loading')}
                     </div>
                   ) : workingDiff ? (
                     <DiffLines diffText={workingDiff} />
@@ -714,7 +714,7 @@ export const GitModal: React.FC<GitModalProps> = ({
                       {commitDiffLoading ? (
                         <div className="h-full flex items-center justify-center text-[#64748B] text-xs gap-2">
                           <Loader2 className="w-4 h-4 animate-spin" />
-                          {t('git.loadingDiff')}
+                          {t('common.loading')}
                         </div>
                       ) : commitDiff ? (
                         <DiffLines diffText={commitDiff} />

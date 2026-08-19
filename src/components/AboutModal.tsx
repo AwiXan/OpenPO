@@ -55,7 +55,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
     <div className="flex items-center gap-2">
       <span>OpenPOT</span>
       <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#3B82F622] text-[#38BDF8] border border-[#3B82F644] font-mono font-bold leading-none">
-        v1.2
+        v1.3
       </span>
     </div>
   );
