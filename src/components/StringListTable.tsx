@@ -2,6 +2,9 @@ import React from 'react';
 import {
   Clock,
   Trash2,
+  AlertCircle,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import { PoEntry, LintIssue } from '../types/gettext';
 import { useTranslation } from '../lib/i18n';
@@ -51,6 +54,9 @@ export const StringListTable: React.FC<StringListTableProps> = ({
               const issues = issuesMap.get(entry.id) || [];
               const hasError = issues.some((i) => i.type === 'error');
               const hasWarning = issues.some((i) => i.type === 'warning');
+              const issueSeverity = hasError ? 'error' : hasWarning ? 'warning' : 'info';
+              const IssueIcon = hasError ? AlertCircle : hasWarning ? AlertTriangle : Info;
+              const pluralIssues = issues.filter((issue) => issue.field === 'plural');
 
               // Determine status dot color
               let dotColor = 'text-[#64748B]';
@@ -126,23 +132,30 @@ export const StringListTable: React.FC<StringListTableProps> = ({
                   {/* Validation Issues */}
                   <td className="px-3 py-2.5">
                     {issues.length > 0 ? (
-                      <div className="flex items-center gap-1">
+                      <div
+                        className={`flex items-center gap-1.5 rounded px-1.5 py-1 border ${
+                          issueSeverity === 'error'
+                            ? 'border-rose-800/70 bg-rose-950/30'
+                            : issueSeverity === 'warning'
+                              ? 'border-amber-800/70 bg-amber-950/20'
+                              : 'border-sky-800/70 bg-sky-950/20'
+                        }`}
+                        title={issues.map((issue) => issue.message).join('\n')}
+                      >
+                        <IssueIcon className={`w-3.5 h-3.5 shrink-0 ${issueSeverity === 'error' ? 'text-rose-400' : issueSeverity === 'warning' ? 'text-amber-400' : 'text-sky-400'}`} />
+                        <span className={`text-[10px] font-semibold ${issueSeverity === 'error' ? 'text-rose-300' : issueSeverity === 'warning' ? 'text-amber-300' : 'text-sky-300'}`}>
+                          {issues.length}
+                        </span>
                         <span
-                          className={`text-[10px] truncate max-w-[130px] ${
+                          className={`text-[10px] truncate max-w-[100px] ${
                             hasError ? 'text-rose-400' : 'text-[#F59E0B]'
                           }`}
-                          title={issues.map((i) => i.message).join(' | ')}
                         >
-                          {issues[0].message}
+                          {pluralIssues.length > 0 ? `${pluralIssues.length} ${t('table.pluralIssues')}` : t(`table.${issueSeverity}`)}
                         </span>
-                        {issues.length > 1 && (
-                          <span className="text-[9px] px-1 rounded bg-[#EF44441A] text-[#EF4444] font-mono">
-                            +{issues.length - 1}
-                          </span>
-                        )}
                       </div>
                     ) : (
-                      <span className="text-[#64748B] text-[11px]">-</span>
+                      <span className="text-[#4ADE80] text-[10px]">{t('table.valid')}</span>
                     )}
                   </td>
 

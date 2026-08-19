@@ -89,6 +89,8 @@ export class TranslationMemory {
     const seenTranslations = new Set<string>();
 
     for (const c of candidates) {
+      // Never suggest a translation indexed from the same source key.
+      if (c.sourceMsgid.trim().toLowerCase() === msgid.trim().toLowerCase()) continue;
       if (seenTranslations.has(c.suggestedMsgstr)) continue;
 
       const sim = calculateSimilarity(msgid, c.sourceMsgid);

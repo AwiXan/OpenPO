@@ -297,7 +297,19 @@ export default function App() {
   }), [activeEntries, searchQuery, selectedCategory, filterStatus, categoryData, issuesMap]);
 
   const activeEntryId = currentWorkspace.activeEntryId || filteredEntries[0]?.id || null;
-  const currentEntry = useMemo(() => activeEntries.find((e) => e.id === activeEntryId) || null, [activeEntries, activeEntryId]);
+  const currentEntry = useMemo(() => {
+    const directEntry = activeEntries.find((entry) => entry.id === activeEntryId);
+    if (isPotActive) return directEntry || null;
+    if (!activeEntryId) return null;
+
+    const templateEntry = currentWorkspace.potFile.entries.find((entry) => entry.id === activeEntryId)
+      || (directEntry && currentWorkspace.potFile.entries.find((entry) => entry.msgid === directEntry.msgid && (entry.msgctxt || '') === (directEntry.msgctxt || '')));
+    if (!templateEntry) return null;
+    const targetEntry = directEntry || activeEntries.find((entry) => entry.msgid === templateEntry.msgid && (entry.msgctxt || '') === (templateEntry.msgctxt || ''));
+    return targetEntry
+      ? { ...targetEntry, msgidPlural: targetEntry.msgidPlural || templateEntry.msgidPlural }
+      : null;
+  }, [activeEntries, activeEntryId, currentWorkspace.potFile.entries, isPotActive]);
 
   const tmSuggestions = useMemo(() => {
     if (!currentEntry || isPotActive || !currentPoFile) return [];

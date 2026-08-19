@@ -1,4 +1,5 @@
 import { PoEntry, PoFileRecord, PoHeader, Workspace } from '../types/gettext';
+import { getPluralRuleForLanguage } from './pluralEngine';
 
 export type TranslationFormat = 'gettext' | 'csv' | 'json';
 export type JsonFormat = 'key-first' | 'language-first';
@@ -40,7 +41,7 @@ function matrixFromWorkspace(workspace: Workspace, csvPluralSuffix: string): Tra
   workspace.potFile.entries.forEach((templateEntry) => {
     const matchingEntries = workspace.poFiles.map((po) => po.entries.find((entry) => entry.msgid === templateEntry.msgid && (entry.msgctxt || '') === (templateEntry.msgctxt || '')));
     const pluralCount = templateEntry.msgidPlural
-      ? Math.max(1, ...matchingEntries.map((entry) => entry?.msgstr.length || 0))
+      ? Math.max(1, ...workspace.poFiles.map((po) => getPluralRuleForLanguage(po.language, po.header.pluralForms).nplurals), ...matchingEntries.map((entry) => entry?.msgstr.length || 0))
       : 1;
     for (let pluralIndex = 0; pluralIndex < pluralCount; pluralIndex++) {
       const key = templateEntry.msgidPlural ? pluralKey(templateEntry.msgid, pluralIndex, csvPluralSuffix) : templateEntry.msgid;
@@ -89,16 +90,22 @@ function matrixToEntries(matrix: TranslationMatrix, csvPluralSuffix: string): Re
     const pluralIndex = pluralMatch ? Number(pluralMatch[2]) : 0;
     Object.entries(translations).forEach(([language, value]) => {
       const entries = entriesByLanguage[language] || (entriesByLanguage[language] = []);
+      const isArrayPlural = Array.isArray(value) && !pluralMatch;
       let entry = entries.find((candidate) => candidate.msgid === baseKey);
       if (!entry) {
-        entry = emptyEntry(language, baseKey, pluralMatch ? `${baseKey} (plural)` : undefined, rowIndex);
+        entry = emptyEntry(language, baseKey, pluralMatch || isArrayPlural ? `${baseKey} (plural)` : undefined, rowIndex);
         entries.push(entry);
       }
-      const text = Array.isArray(value) ? value[pluralIndex] || '' : value || '';
-      if (pluralMatch) {
+      if (isArrayPlural) {
+        entry.msgidPlural = `${baseKey} (plural)`;
+        entry.msgstr = value.map((translation) => translation || '');
+      } else if (pluralMatch) {
+        const text = Array.isArray(value) ? value[pluralIndex] || '' : value || '';
         entry.msgidPlural = `${baseKey} (plural)`;
         entry.msgstr[pluralIndex] = text;
-      } else entry.msgstr[0] = text;
+      } else {
+        entry.msgstr[0] = value || '';
+      }
     });
   });
   return entriesByLanguage;

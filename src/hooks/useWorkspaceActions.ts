@@ -168,7 +168,11 @@ export function useWorkspaceActions(
         }
         const updatedPoFiles = w.poFiles.map((po) => {
           if (po.id !== w.activeFileId) return po;
-          const updatedEntries = po.entries.map((e) => (e.id === updated.id ? updated : e));
+          const updatedEntries = po.entries.map((e) => (
+            e.id === updated.id || (e.msgid === updated.msgid && (e.msgctxt || '') === (updated.msgctxt || ''))
+              ? { ...e, ...updated }
+              : e
+          ));
           return { ...po, entries: updatedEntries, isModified: true };
         });
         return { ...w, poFiles: updatedPoFiles, isModified: true };
@@ -184,9 +188,13 @@ export function useWorkspaceActions(
         if (w.id !== activeWorkspaceId) return w;
         const updatedPotEntries = w.potFile.entries.map((e) => (e.id === updatedPotEntry.id ? updatedPotEntry : e));
         const updatedPoFiles = w.poFiles.map((po) => {
-          const existingPoEntry = po.entries.find((e) => e.id === updatedPotEntry.id);
+          const existingPoEntry = po.entries.find((e) => e.id === updatedPotEntry.id)
+            || po.entries.find((e) => e.msgid === updatedPotEntry.msgid && (e.msgctxt || '') === (updatedPotEntry.msgctxt || ''));
           if (!existingPoEntry) return po;
-          const syncedEntry: PoEntry = { ...existingPoEntry, msgid: updatedPotEntry.msgid, msgidPlural: updatedPotEntry.msgidPlural, msgctxt: updatedPotEntry.msgctxt, comments: updatedPotEntry.comments, references: updatedPotEntry.references };
+          const rule = getPluralRuleForLanguage(po.language, po.header.pluralForms);
+          const requiredForms = updatedPotEntry.msgidPlural ? rule.nplurals : 1;
+          const msgstr = Array.from({ length: requiredForms }, (_, index) => existingPoEntry.msgstr[index] || '');
+          const syncedEntry: PoEntry = { ...existingPoEntry, msgid: updatedPotEntry.msgid, msgidPlural: updatedPotEntry.msgidPlural, msgctxt: updatedPotEntry.msgctxt, comments: updatedPotEntry.comments, references: updatedPotEntry.references, msgstr };
           return { ...po, entries: po.entries.map((e) => (e.id === updatedPotEntry.id ? syncedEntry : e)), isModified: true };
         });
         return { ...w, potFile: { ...w.potFile, entries: updatedPotEntries, isModified: true }, poFiles: updatedPoFiles, isModified: true };

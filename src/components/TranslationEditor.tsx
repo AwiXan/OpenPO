@@ -116,12 +116,22 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
   }, [
     entry?.id,
     entry?.msgid,
+    entry?.msgidPlural,
     pluralRule.nplurals,
-    JSON.stringify(entry?.msgstr),
     entry?.category,
     entry?.flags,
     autoGenerateCategories
   ]);
+
+  // Keep external translation updates in sync without sending the user back to plural form 0.
+  useEffect(() => {
+    if (!entry) return;
+    const requiredForms = entry.msgidPlural ? pluralRule.nplurals : 1;
+    const current = [...entry.msgstr];
+    while (current.length < requiredForms) current.push('');
+    setLocalMsgstr(current);
+    setActivePluralTab((currentTab) => Math.min(currentTab, Math.max(0, requiredForms - 1)));
+  }, [entry?.msgstr, entry?.msgidPlural, pluralRule.nplurals]);
 
   useEffect(() => {
     if (entry) {
@@ -320,7 +330,7 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
         <div className="flex items-center gap-2">
           <span className="text-[10px] uppercase font-bold text-[#64748B] flex items-center gap-1">
             <Folder className="w-3 h-3 text-[#F59E0B]" />
-            {t('category.title')}:
+            {t('category.category')}:
           </span>
           {isEditingCategory ? (
             <div className="flex items-center gap-1">
@@ -460,6 +470,19 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 <Save className="w-3.5 h-3.5" />
                 <span>{t('editor.savePot')}</span>
               </button>
+              {localMsgidPlural.trim() && (
+                <div className="bg-[#16191E] border border-[#2D3139] rounded p-2.5 space-y-1.5">
+                  <div className="text-[10px] text-[#3B82F6] uppercase font-bold">{t('editor.pluralPreview')}</div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {Array.from({ length: pluralRule.nplurals }).map((_, formIndex) => (
+                      <div key={formIndex} className="rounded border border-[#2D3139] bg-[#090B0E] px-2 py-1.5 font-mono text-[10px] text-[#94A3B8]">
+                        <span className="text-[#38BDF8]">msgstr[{formIndex}]</span>
+                        <span className="block mt-0.5">{pluralRule.names[formIndex] || `Form ${formIndex}`}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* Standard Read-Only Source View */
@@ -512,7 +535,7 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
                 </span>
                 {entry.msgidPlural && (
                   <span className="text-[10px] font-mono text-[#64748B]">
-                    {pluralRule.nplurals} plural forms
+                    {pluralRule.nplurals} {t('editor.pluralForms')}
                   </span>
                 )}
               </div>
@@ -607,10 +630,14 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
 
                   <div className="flex items-center gap-2 text-[11px]">
                     <span className="text-[#64748B]">{t('editor.activeForm')}</span>
-                    <span className="font-mono font-bold text-[#3B82F6]">
-                      msgstr[{evaluatedPluralIndex}] (
-                      {pluralRule.names[evaluatedPluralIndex] || 'default'})
-                    </span>
+                    <div className="font-mono font-bold text-[#3B82F6] min-w-0">
+                      <div>
+                        msgstr[{evaluatedPluralIndex}] ({pluralRule.names[evaluatedPluralIndex] || 'default'})
+                      </div>
+                      <div className="mt-0.5 max-w-[280px] truncate text-[#E2E8F0] font-normal" title={localMsgstr[evaluatedPluralIndex] || t('editor.emptyTranslation')}>
+                        {localMsgstr[evaluatedPluralIndex] || t('editor.emptyTranslation')}
+                      </div>
+                    </div>
                   </div>
                 </div>
 

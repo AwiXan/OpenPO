@@ -18,6 +18,7 @@ import {
 import { deriveCategoryPath } from '../lib/categorizer';
 import { countNewlines, toDisplayText, toStoredText } from '../lib/newlineDisplay';
 import { DropdownMenu } from './ui/DropdownMenu';
+import { getPluralRuleForLanguage } from '../lib/pluralEngine';
 
 interface MultiLanguageGridViewProps {
   workspace: Workspace;
@@ -226,7 +227,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
             
             {potEntry.msgidPlural && (
               <div className="text-[10px] text-[#3B82F6] mt-1 whitespace-pre-wrap">
-                Plural: {potEntry.msgidPlural}
+                <span className="font-bold">{t('editor.plural')}:</span> {potEntry.msgidPlural}
               </div>
             )}
             
@@ -244,7 +245,10 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
             (e) => e.msgid === potEntry.msgid && (e.msgctxt || '') === (potEntry.msgctxt || '')
           ) || po.entries.find((e) => e.id === potEntry.id);
 
-          const currentMsgstr = poEntry?.msgstr || [''];
+          const expectedForms = potEntry.msgidPlural
+            ? getPluralRuleForLanguage(po.language, po.header.pluralForms).nplurals
+            : 1;
+          const currentMsgstr = Array.from({ length: expectedForms }, (_, index) => poEntry?.msgstr[index] || '');
           const isFuzzy = poEntry?.flags.includes('fuzzy');
 
           return (
@@ -434,6 +438,7 @@ export const MultiLanguageGridView: React.FC<MultiLanguageGridViewProps> = ({
                     <div className="flex items-center gap-1.5">
                       <span className="text-[#3B82F6] font-mono font-bold uppercase">{po.language}</span>
                       <span className="text-[#E2E8F0] font-medium">{po.languageName}</span>
+                      {po.entries.some((entry) => entry.msgidPlural) && <span className="px-1 py-0.5 rounded bg-[#3B82F61A] text-[#38BDF8] border border-[#3B82F633] text-[9px] font-mono">{t('editor.plural')}</span>}
                     </div>
                     <span className="text-[9px] font-mono text-[#64748B]">
                       {po.entries.filter((e) => e.msgstr.some((s) => s.trim() !== '')).length}/{po.entries.length}
