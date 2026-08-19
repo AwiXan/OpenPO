@@ -18,6 +18,7 @@ import {
   Plus,
   X,
   Filter,
+  CornerDownRight,
 } from 'lucide-react';
 import { CategoryNode } from '../lib/categorizer';
 import { FilterStatus } from '../types/gettext';
@@ -60,7 +61,6 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
   onRenameCategory,
   onDeleteCategory,
   onReorderCategories,
-  
 }) => {
   const { t } = useTranslation();
 
@@ -156,6 +156,33 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
     return set;
   });
 
+  // Автоматически закрываем папки, из которых перенесли все подкатегории
+  useEffect(() => {
+    const validParentPaths = new Set<string>();
+    function collectParentPaths(nodes: CategoryNode[]) {
+      for (const n of nodes) {
+        if (n.children.length > 0) {
+          validParentPaths.add(n.fullPath);
+          collectParentPaths(n.children);
+        }
+      }
+    }
+    collectParentPaths(categoryTree);
+
+    setExpandedPaths((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+      for (const p of prev) {
+        if (validParentPaths.has(p)) {
+          next.add(p);
+        } else {
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [categoryTree]);
+
   const toggleExpand = (fullPath: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpandedPaths((prev) => {
@@ -189,7 +216,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
 
   const handleNodeDragOver = (e: React.DragEvent, nodePath: string) => {
     if (!draggedCategoryPath || draggedCategoryPath === nodePath) return;
-    if (nodePath.startsWith(draggedCategoryPath + ' / ')) return; // нельзя бросать в своих потомков
+    if (nodePath.startsWith(draggedCategoryPath + ' / ')) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -213,20 +240,22 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!draggedCategoryPath || !onReorderCategories) return;
+    if (draggedCategoryPath && onReorderCategories) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const offsetY = e.clientY - rect.top;
+      const height = rect.height;
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const offsetY = e.clientY - rect.top;
-    const height = rect.height;
+      let position: 'before' | 'after' | 'inside' = 'inside';
+      if (offsetY < height * 0.25) position = 'before';
+      else if (offsetY > height * 0.75) position = 'after';
 
-    let position: 'before' | 'after' | 'inside' = 'inside';
-    if (offsetY < height * 0.25) {
-      position = 'before';
-    } else if (offsetY > height * 0.75) {
-      position = 'after';
+      onReorderCategories(draggedCategoryPath, targetPath, position);
+
+      // Раскрываем целевую папку, если положили внутрь
+      if (position === 'inside') {
+        setExpandedPaths((prev) => new Set([...prev, targetPath]));
+      }
     }
-
-    onReorderCategories(draggedCategoryPath, targetPath, position);
 
     setDraggedCategoryPath(null);
     setDragOverTarget(null);
@@ -234,6 +263,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
 
   const handleDropOnRoot = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOverRoot(false);
 
     if (!draggedCategoryPath || !onReorderCategories) return;
@@ -282,7 +312,9 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
           onDragLeave={(e) => {
             e.stopPropagation();
             if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-              setDragOverTarget(null);
+              if (dragOverTarget?.path === node.fullPath) {
+                setDragOverTarget(null);
+              }
             }
           }}
           onDrop={(e) => handleNodeDrop(e, node.fullPath)}
@@ -299,6 +331,15 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
               : 'text-[#94A3B8] hover:bg-[#1C2128] hover:text-[#E2E8F0]'
           }`}
         >
+          {/* Многоуровневые направляющие линии */}
+          {Array.from({ length: node.level }).map((_, idx) => (
+            <div
+              key={idx}
+              className="absolute top-0 bottom-0 w-[1px] bg-[#2D3139]/60 pointer-events-none"
+              style={{ left: `${idx * 16 + 15}px` }}
+            />
+          ))}
+
           {/* Индикатор вставки сверху */}
           {isTargetBefore && (
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#38BDF8] z-20 shadow-[0_0_4px_#38BDF8]" />
@@ -310,11 +351,11 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
           )}
 
           {isSelected && (
-            <div className="absolute left-0 top-1 bottom-1 w-0.5 bg-[#38BDF8] rounded-r" />
+            <div className="absolute left-0 top-1 bottom-1 w-0.5 bg-[#38BDF8] rounded-r z-10" />
           )}
 
-          {/* Левая часть */}
-          <div className="flex items-center gap-1.5 min-w-0 overflow-hidden pr-1">
+          {/* Левая часть: Иконка, Название и Индикатор */}
+          <div className="flex items-center gap-1.5 min-w-0 overflow-hidden pr-1 z-10">
             {hasChildren ? (
               <button
                 type="button"
@@ -331,7 +372,8 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
               <span className="w-4 h-4 shrink-0" />
             )}
 
-            {isExpanded ? (
+            {/* Иконка папки: открыта ТОЛЬКО если есть дети И развернута */}
+            {hasChildren && isExpanded ? (
               <FolderOpen className="w-3.5 h-3.5 text-[#38BDF8] shrink-0 pointer-events-none" />
             ) : (
               <Folder
@@ -398,7 +440,7 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
           </div>
 
           {/* Правая часть */}
-          <div className="flex items-center gap-1 shrink-0 ml-2">
+          <div className="flex items-center gap-1 shrink-0 ml-2 z-10">
             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 type="button"
@@ -451,8 +493,9 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
           </div>
         </div>
 
+        {/* Дочерние узлы */}
         {hasChildren && isExpanded && (
-          <div className="flex flex-col relative before:absolute before:left-[15px] before:top-0 before:bottom-2 before:w-[1px] before:bg-[#2D3139]/50">
+          <div className="flex flex-col relative">
             {node.children.map((child) => renderTreeNode(child))}
           </div>
         )}
@@ -706,20 +749,37 @@ export const SidebarCategories: React.FC<SidebarCategoriesProps> = ({
           if (draggedCategoryPath) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            setIsDragOverRoot(true);
           }
         }}
-        onDragLeave={() => setIsDragOverRoot(false)}
-        onDrop={handleDropOnRoot}
-        className={`flex-1 overflow-y-auto px-1 py-1 space-y-0.5 custom-scrollbar transition-colors ${
-          isDragOverRoot ? 'bg-[#38BDF808] border-2 border-dashed border-[#38BDF840] rounded-md m-1' : ''
-        }`}
+        className="flex-1 overflow-y-auto px-1 py-1 space-y-0.5 custom-scrollbar"
       >
         {categoryTree.map((rootNode) => renderTreeNode(rootNode))}
 
         {categoryTree.length === 0 && (
           <div className="text-center py-6 text-[#64748B] text-xs">
             {t('sidebar.noMatchingCategories')}
+          </div>
+        )}
+
+        {/* Интерактивная зона сброса в Root */}
+        {draggedCategoryPath && draggedCategoryPath.includes(' / ') && (
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              e.dataTransfer.dropEffect = 'move';
+              setIsDragOverRoot(true);
+            }}
+            onDragLeave={() => setIsDragOverRoot(false)}
+            onDrop={handleDropOnRoot}
+            className={`mt-2 mx-1 p-2 rounded border border-dashed flex items-center justify-center gap-1.5 text-[11px] font-mono transition-colors cursor-pointer ${
+              isDragOverRoot
+                ? 'border-[#38BDF8] bg-[#38BDF81A] text-[#38BDF8]'
+                : 'border-[#2D3139] text-[#64748B] hover:border-[#38BDF860]'
+            }`}
+          >
+            <CornerDownRight className="w-3.5 h-3.5" />
+            <span>Move to Root level</span>
           </div>
         )}
       </div>

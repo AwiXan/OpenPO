@@ -75,13 +75,14 @@ export default function App() {
     return initial;
   });
 
+  
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
       if (!import.meta.env.DEV) {
         e.preventDefault();
       }
     };
-
+    
     document.addEventListener('contextmenu', handleContextMenu);
     return () => document.removeEventListener('contextmenu', handleContextMenu);
   }, []);
@@ -124,6 +125,10 @@ export default function App() {
 
   const [isSplashVisible, setIsSplashVisible] = useState(true);
   const [isSplashFading, setIsSplashFading] = useState(false);
+
+  useEffect(() => {
+    setSelectedCategory(null);
+  }, [activeWorkspaceId]);
 
   useEffect(() => {
     const splash = document.getElementById('app-splashscreen');
@@ -315,16 +320,32 @@ export default function App() {
   const activeEntryId = currentWorkspace.activeEntryId || filteredEntries[0]?.id || null;
   const currentEntry = useMemo(() => {
     const directEntry = activeEntries.find((entry) => entry.id === activeEntryId);
-    if (isPotActive) return directEntry || null;
-    if (!activeEntryId) return null;
+    if (!activeEntryId || !directEntry) return null;
+    if (isPotActive) return directEntry;
 
-    const templateEntry = currentWorkspace.potFile.entries.find((entry) => entry.id === activeEntryId)
-      || (directEntry && currentWorkspace.potFile.entries.find((entry) => entry.msgid === directEntry.msgid && (entry.msgctxt || '') === (directEntry.msgctxt || '')));
-    if (!templateEntry) return null;
-    const targetEntry = directEntry || activeEntries.find((entry) => entry.msgid === templateEntry.msgid && (entry.msgctxt || '') === (templateEntry.msgctxt || ''));
-    return targetEntry
-      ? { ...targetEntry, msgidPlural: targetEntry.msgidPlural || templateEntry.msgidPlural }
-      : null;
+    const templateEntry =
+      currentWorkspace.potFile.entries.find((entry) => entry.id === activeEntryId) ||
+      currentWorkspace.potFile.entries.find(
+        (entry) =>
+          entry.msgid === directEntry.msgid &&
+          (entry.msgctxt || '') === (directEntry.msgctxt || '')
+      );
+
+    if (!templateEntry) {
+      return directEntry;
+    }
+
+    return {
+      ...directEntry,
+      msgidPlural: directEntry.msgidPlural || templateEntry.msgidPlural,
+      comments: directEntry.comments.length > 0 ? directEntry.comments : templateEntry.comments,
+      extractedComments:
+        directEntry.extractedComments.length > 0
+          ? directEntry.extractedComments
+          : templateEntry.extractedComments,
+      references:
+        directEntry.references.length > 0 ? directEntry.references : templateEntry.references,
+    };
   }, [activeEntries, activeEntryId, currentWorkspace.potFile.entries, isPotActive]);
 
   const tmSuggestions = useMemo(() => {
@@ -556,6 +577,7 @@ export default function App() {
         <main className="flex-1 flex overflow-hidden relative">
           <div style={{ width: `${sidebarWidth}px`, minWidth: `${sidebarWidth}px` }} className="h-full shrink-0 flex overflow-hidden">
             <SidebarCategories
+            key={activeWorkspaceId}
             categoryTree={categoryData.tree}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}

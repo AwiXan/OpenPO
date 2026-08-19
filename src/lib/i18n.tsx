@@ -228,6 +228,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Seamless local folder scanner, automatic .mo emission, and one-click ZIP packaging.',
     'about.featurePluralTitle': 'Plural Forms Engine',
     'about.featurePluralDesc': 'Interactive nplurals tester supporting Slavic, Germanic, Romance, and CJK plural rules.',
+    "about.featureCategoryTitle": "Smart Categorization",
+    "about.featureCategoryDesc": "Nested folder tree with drag-and-drop reordering, inline renaming, status indicators, and subcategory management.",
     'about.engineName': 'OpenPOT Localization Engine',
     'about.footerTagline': 'Created for fast game & app translations',
 
@@ -251,6 +253,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'category.noCategory': 'General',
     'category.editCategory': 'Edit Category',
     'category.quickCategories': 'Quick Categories',
+    'category.deleted': 'Category "${targetNorm}" deleted',
 
     // New Key Modal
     'newKey.title': 'Add New Translation Key (msgid)',
@@ -586,7 +589,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.subtitle': 'Модульная среда локализации GNU gettext (.po / .pot / .mo)',
     'about.vibecodedTitle': 'ОСТОРОЖНО ИИ-СЛОП!',
     'about.aiCraft': '100% ИИ-разработка',
-    'about.vibecodedNote': 'Это приложение на 100% сгенерировано нейросетями от компании Google, лишь под небольшим руководством AwiXan (я, типа, мало чего сам сделал). Я решил выпустить это приложение чисто ради общего удобства.',
+    'about.vibecodedNote': 'Это приложение на 100% сгенерировано нейросетями от компании Google, лишь под небольшим руководством AwiXan (но по сути я мало чего сам сделал). Я решил выпустить это приложение чисто ради общего блага.',
     'about.coreFeatures': 'Основные возможности',
     'about.featureMoTitle': 'GNU gettext PO & MO',
     'about.featureMoDesc': 'Полноценный парсер, форматтер и мгновенный компилятор бинарных .mo прямо в браузере.',
@@ -600,8 +603,11 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Сканирование локальных папок, автоматическая генерация .mo и экспорт в ZIP в один клик.',
     'about.featurePluralTitle': 'Движок множественных форм',
     'about.featurePluralDesc': 'Интерактивный тест nplurals: поддержка славянских, германских, романских и азиатских правил.',
+    "about.featureCategoryTitle": "Удобная категоризация",
+    "about.featureCategoryDesc": "Иерархическое дерево папок с drag-and-drop, инлайн-переименованием, индикаторами статуса и подкатегориями.",
     'about.engineName': 'Движок локализации OpenPOT',
     'about.footerTagline': 'Создано для быстрого перевода игр и приложений',
+    
 
     // Category Management
     'category.category': 'Категория',
@@ -623,6 +629,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'category.noCategory': 'Общие (General)',
     'category.editCategory': 'Редактировать категорию',
     'category.quickCategories': 'Быстрые категории',
+    'category.deleted': 'Категория "${targetNorm}" удалена',
 
     // New Key Modal
     'newKey.title': 'Новый ключ перевода (msgid)',
@@ -970,6 +977,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Escaneo de carpetas locales, generación automática de .mo y empaquetado ZIP en un clic.',
     'about.featurePluralTitle': 'Motor de formas plurales',
     'about.featurePluralDesc': 'Comprobador interactivo de nplurals compatible con reglas eslavas, germánicas, romances y CJK.',
+    "about.featureCategoryTitle": "Categorización inteligente",
+    "about.featureCategoryDesc": "Árbol de carpetas anidadas con reordenación arrastrar y soltar, cambio de nombre directo e indicadores de estado.",
     'about.engineName': 'Motor de localización OpenPOT',
     'about.footerTagline': 'Creado para la traducción rápida de juegos y aplicaciones',
 
@@ -993,6 +1002,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'category.noCategory': 'General',
     'category.editCategory': 'Editar Categoría',
     'category.quickCategories': 'Categorías Rápidas',
+    'category.deleted': 'Categoría "${targetNorm}" eliminada',
 
     // New Key Modal
     'newKey.title': 'Nueva clave de traducción (msgid)',
@@ -1341,6 +1351,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Analyse des dossiers locaux, génération automatique de .mo et création d\'archives ZIP en un clic.',
     'about.featurePluralTitle': 'Moteur de formes plurielles',
     'about.featurePluralDesc': 'Testeur interactif de nplurals prenant en charge les règles slaves, germaniques, romanes et CJK.',
+    "about.featureCategoryTitle": "Catégorisation intelligente",
+    "about.featureCategoryDesc": "Arborescence de dossiers imbriqués avec glisser-déposer, renommage en ligne et indicateurs d'état.",
     'about.engineName': 'Moteur de localisation OpenPOT',
     'about.footerTagline': 'Conçu pour la traduction rapide de jeux et d\'applications',
 
@@ -1364,6 +1376,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'category.noCategory': 'Général (General)',
     'category.editCategory': 'Modifier la Catégorie',
     'category.quickCategories': 'Catégories Rapides',
+    'category.deleted': 'Catégorie "${targetNorm}" supprimée',
 
     // New Key Modal
     'newKey.title': 'Nouvelle clé de traduction (msgid)',
@@ -1712,6 +1725,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'Nahtloses Scannen lokaler Ordner, automatische .mo-Erstellung und ZIP-Export mit einem Klick.',
     'about.featurePluralTitle': 'Pluralformen-Engine',
     'about.featurePluralDesc': 'Interaktiver nplurals-Tester zur Unterstützung slawischer, germanischer, romanischer und CJK-Regeln.',
+    "about.featureCategoryTitle": "Intelligente Kategorisierung",
+    "about.featureCategoryDesc": "Verschachtelter Ordnerbaum mit Drag-and-Drop, Inline-Umbenennung und visuellen Statusindikatoren.",
     'about.engineName': 'OpenPOT Lokalisierungs-Engine',
     'about.footerTagline': 'Entwickelt für schnelle Übersetzungen von Spielen und Apps',
 
@@ -1735,6 +1750,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'category.noCategory': 'Allgemein (General)',
     'category.editCategory': 'Kategorie bearbeiten',
     'category.quickCategories': 'Schnellkategorien',
+    'category.deleted': 'Kategorie "${targetNorm}" gelöscht',
 
     // New Key Modal
     'newKey.title': 'Neuer Übersetzungsschlüssel (msgid)',
@@ -2083,6 +2099,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': '无缝本地文件夹扫描、自动生成 .mo 文件和一键 ZIP 打包。',
     'about.featurePluralTitle': '复数形式引擎',
     'about.featurePluralDesc': '交互式 nplurals 测试器，支持斯拉夫语族、日耳曼语族、罗曼语族和中日韩复数规则。',
+    "about.featureCategoryTitle": "智能层级分类",
+    "about.featureCategoryDesc": "支持拖放排序、行内重命名、状态指示器及子文件夹管理的嵌套目录树。",
     'about.engineName': 'OpenPOT 本地化引擎',
     'about.footerTagline': '专为快速游戏和应用程序本地化而打造',
 
@@ -2106,6 +2124,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'category.noCategory': '通用 (General)',
     'category.editCategory': '编辑分类',
     'category.quickCategories': '常用分类',
+    'category.deleted': '分类 "${targetNorm}" 已删除',
 
     // New Key Modal
     'newKey.title': '新增翻译键 (msgid)',
@@ -2454,6 +2473,8 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'about.featureFolderDesc': 'シームレスなローカルフォルダスキャン、自動 .mo 生成、ワンクリック ZIP パッケージング。',
     'about.featurePluralTitle': '複数形エンジン',
     'about.featurePluralDesc': 'スラヴ、ゲルマン、ロマンス、日中韓の複数形ルールをサポートする対話型 nplurals テスター。',
+    "about.featureCategoryTitle": "智能层级分类",
+    "about.featureCategoryDesc": "支持拖放排序、行内重命名、状态指示器及子文件夹管理的嵌套目录树。",
     'about.engineName': 'OpenPOT ローカリゼーションエンジン',
     'about.footerTagline': 'ゲームやアプリの素早い翻訳のために作成されました',
 
@@ -2477,6 +2498,7 @@ export const TRANSLATIONS: Record<UiLanguage, Record<string, string>> = {
     'category.noCategory': '一般 (General)',
     'category.editCategory': 'カテゴリ編集',
     'category.quickCategories': 'クイックカテゴリ',
+    'category.deleted': 'カテゴリ "${targetNorm}" を削除しました',
 
     // New Key Modal
     'newKey.title': '新規翻訳キー (msgid)',

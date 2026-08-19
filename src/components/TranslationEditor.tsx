@@ -291,33 +291,6 @@ export const TranslationEditor: React.FC<TranslationEditorProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Quick Undo / Redo controls */}
-          {(onUndo || onRedo) && (
-            <div className="flex items-center bg-[#090B0E] p-0.5 rounded border border-[#2D3139]">
-              <button
-                onClick={onUndo}
-                disabled={!canUndo}
-                className={`p-1 rounded transition-colors cursor-pointer ${canUndo
-                  ? 'text-[#E2E8F0] hover:bg-[#1C2128] hover:text-[#38BDF8]'
-                  : 'text-[#64748B] opacity-40 cursor-not-allowed'
-                  }`}
-                title="Undo edit (Ctrl+Z)"
-              >
-                <Undo2 className="w-3 h-3" />
-              </button>
-              <button
-                onClick={onRedo}
-                disabled={!canRedo}
-                className={`p-1 rounded transition-colors cursor-pointer ${canRedo
-                  ? 'text-[#E2E8F0] hover:bg-[#1C2128] hover:text-[#38BDF8]'
-                  : 'text-[#64748B] opacity-40 cursor-not-allowed'
-                  }`}
-                title="Redo edit (Ctrl+Y)"
-              >
-                <Redo2 className="w-3 h-3" />
-              </button>
-            </div>
-          )}
 
           <div className="text-[10px] text-[#64748B] font-mono">
             <span>{entry.references[0] || 'inline'}</span>

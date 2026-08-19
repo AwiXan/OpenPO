@@ -5,6 +5,7 @@ import {
   FileJson,
   GitBranch,
   FolderSync,
+  FolderTree,
   Hash,
   Binary,
   Heart,
@@ -55,7 +56,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
     <div className="flex items-center gap-2">
       <span>OpenPOT</span>
       <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#3B82F622] text-[#38BDF8] border border-[#3B82F644] font-mono font-bold leading-none">
-        v1.3
+        v1.4
       </span>
     </div>
   );
@@ -101,10 +102,20 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         <div className="space-y-2.5">
           <h3 className="text-xs font-bold text-white tracking-wide flex items-center gap-1.5 uppercase text-[10px] text-[#64748B]">
             <ShieldCheck className="w-3.5 h-3.5 text-[#38BDF8]" />
-                <span>{t('about.coreFeatures')}</span>
+            <span>{t('about.coreFeatures')}</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
+              <FolderTree className="w-4 h-4 text-[#38BDF8] shrink-0 mt-0.5" />
+              <div>
+                <div className="font-semibold text-white text-xs">{t('about.featureCategoryTitle')}</div>
+                <p className="text-[11px] text-[#64748B] mt-0.5">
+                  {t('about.featureCategoryDesc')}
+                </p>
+              </div>
+            </div>
+
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <Binary className="w-4 h-4 text-[#38BDF8] shrink-0 mt-0.5" />
               <div>
@@ -124,13 +135,14 @@ export const AboutModal: React.FC<AboutModalProps> = ({
                 </p>
               </div>
             </div>
-              <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
-                <FileJson className="w-4 h-4 text-[#FBBF24] shrink-0 mt-0.5" />
-                <div>
-                  <div className="font-semibold text-white text-xs">{t('about.featureFormatsTitle')}</div>
-                  <p className="text-[11px] text-[#64748B] mt-0.5">{t('about.featureFormatsDesc')}</p>
-                </div>
+
+            <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
+              <FileJson className="w-4 h-4 text-[#FBBF24] shrink-0 mt-0.5" />
+              <div>
+                <div className="font-semibold text-white text-xs">{t('about.featureFormatsTitle')}</div>
+                <p className="text-[11px] text-[#64748B] mt-0.5">{t('about.featureFormatsDesc')}</p>
               </div>
+            </div>
 
             <div className="bg-[#090B0E] p-3 rounded-lg border border-[#2D3139] flex items-start gap-2.5">
               <GitBranch className="w-4 h-4 text-[#F59E0B] shrink-0 mt-0.5" />
@@ -179,7 +191,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({
           <div className="flex items-center gap-1.5">
             <span>{t('about.engineName')}</span>
             <span>•</span>
-            <span className="font-mono text-[#94A3B8]">v1.3</span>
+            <span className="font-mono text-[#94A3B8]">v1.4</span>
           </div>
           <div className="flex items-center gap-1 text-[#38BDF8]">
             <Heart className="w-3 h-3 fill-current text-rose-400" />

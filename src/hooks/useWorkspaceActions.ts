@@ -151,70 +151,90 @@ export function useWorkspaceActions(
   ) => {
     if (!currentWorkspace || !sourcePath) return;
 
-    pushHistorySnapshot(currentWorkspace, `Reorder category ${sourcePath}`);
+    const nodeName = sourcePath.split(' / ').pop()!;
+    let newFullPath = sourcePath;
+
+    if (position === 'inside') {
+      newFullPath = targetPath ? `${targetPath} / ${nodeName}` : nodeName;
+    } else if (position === 'before' || position === 'after') {
+      if (targetPath) {
+        if (targetPath.includes(' / ')) {
+          const targetParent = targetPath.split(' / ').slice(0, -1).join(' / ');
+          newFullPath = `${targetParent} / ${nodeName}`;
+        } else {
+          newFullPath = nodeName;
+        }
+      } else {
+        newFullPath = nodeName;
+      }
+    }
+
+    if (sourcePath === newFullPath && position === 'inside') return;
+
+    pushHistorySnapshot(currentWorkspace, `Move category ${sourcePath} to ${newFullPath}`);
 
     setWorkspaces((prev) =>
       prev.map((w) => {
         if (w.id !== activeWorkspaceId) return w;
 
-        if (position === 'inside' && targetPath) {
-          const nodeName = sourcePath.split(' / ').pop()!;
-          const newFullPath = `${targetPath} / ${nodeName}`;
+        const updateEntryCat = (e: PoEntry): PoEntry => {
+          if (!e.category) return e;
+          if (e.category === sourcePath) return { ...e, category: newFullPath };
+          if (e.category.startsWith(sourcePath + ' / ')) {
+            return {
+              ...e,
+              category: `${newFullPath} / ${e.category.slice((sourcePath + ' / ').length)}`,
+            };
+          }
+          return e;
+        };
 
-          const updateEntryCat = (e: PoEntry): PoEntry => {
-            if (!e.category) return e;
-            if (e.category === sourcePath) return { ...e, category: newFullPath };
-            if (e.category.startsWith(sourcePath + ' / ')) {
-              return { ...e, category: `${newFullPath} / ${e.category.slice((sourcePath + ' / ').length)}` };
+        const updatedPotEntries = w.potFile.entries.map(updateEntryCat);
+        const updatedPoFiles = w.poFiles.map((po) => ({
+          ...po,
+          entries: po.entries.map(updateEntryCat),
+          isModified: true,
+        }));
+
+        let updatedCustomCats = (w.customCategories || []).map((cat) => {
+          if (cat === sourcePath) return newFullPath;
+          if (cat.startsWith(sourcePath + ' / ')) {
+            return `${newFullPath} / ${cat.slice((sourcePath + ' / ').length)}`;
+          }
+          return cat;
+        });
+
+        if (position === 'before' || position === 'after') {
+          updatedCustomCats = updatedCustomCats.filter((cat) => cat !== newFullPath);
+          if (targetPath) {
+            const targetIdx = updatedCustomCats.indexOf(targetPath);
+            if (targetIdx >= 0) {
+              const insertIdx = position === 'before' ? targetIdx : targetIdx + 1;
+              updatedCustomCats.splice(insertIdx, 0, newFullPath);
+            } else {
+              updatedCustomCats.push(newFullPath);
             }
-            return e;
-          };
-
-          const updatedPotEntries = w.potFile.entries.map(updateEntryCat);
-          const updatedPoFiles = w.poFiles.map((po) => ({
-            ...po,
-            entries: po.entries.map(updateEntryCat),
-            isModified: true,
-          }));
-
-          const updatedCustomCats = (w.customCategories || []).map((cat) => {
-            if (cat === sourcePath) return newFullPath;
-            if (cat.startsWith(sourcePath + ' / ')) {
-              return `${newFullPath} / ${cat.slice((sourcePath + ' / ').length)}`;
-            }
-            return cat;
-          });
-
-          return {
-            ...w,
-            potFile: { ...w.potFile, entries: updatedPotEntries, isModified: true },
-            poFiles: updatedPoFiles,
-            customCategories: Array.from(new Set(updatedCustomCats)),
-            isModified: true,
-          };
-        }
-
-        // 2. Если перестановка порядка (before / after) среди сиблингов
-        const currentCats = [...(w.customCategories || [])];
-        const sourceIndex = currentCats.indexOf(sourcePath);
-        if (sourceIndex >= 0) currentCats.splice(sourceIndex, 1);
-
-        if (targetPath) {
-          const targetIndex = currentCats.indexOf(targetPath);
-          const insertIndex = position === 'before' ? Math.max(0, targetIndex) : targetIndex + 1;
-          currentCats.splice(insertIndex, 0, sourcePath);
+          } else {
+            updatedCustomCats.push(newFullPath);
+          }
         } else {
-          currentCats.push(sourcePath);
+          if (!updatedCustomCats.includes(newFullPath)) {
+            updatedCustomCats.push(newFullPath);
+          }
         }
 
         return {
           ...w,
-          customCategories: currentCats,
+          potFile: { ...w.potFile, entries: updatedPotEntries, isModified: true },
+          poFiles: updatedPoFiles,
+          customCategories: Array.from(new Set(updatedCustomCats)),
           isModified: true,
         };
       })
     );
-  }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces]);
+
+    showToast(`Moved category to "${newFullPath}"`, 'info');
+  }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces, showToast]);
 
   const handleSelectFile = (fileId: string) => {
     setWorkspaces((prev) =>
@@ -439,7 +459,9 @@ export function useWorkspaceActions(
       })
     );
 
-    showToast(`Category "${targetNorm}" deleted`, 'info');
+    const message = t('category.deleted').replace('${targetNorm}', targetNorm);
+
+    showToast(message, 'info');
   }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces, showToast]);
 
   const handleAddLanguage = useCallback((langCode: string, langName: string, pluralForms: string) => {
