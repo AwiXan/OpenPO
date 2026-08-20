@@ -4,13 +4,13 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Workspace, FilterStatus, LintIssue, AppSettings, PoFileRecord } from './types/gettext';
+import { Workspace, FilterStatus, LintIssue, AppSettings, PoFileRecord, PoEntry } from './types/gettext';
 import { INITIAL_SAMPLE_WORKSPACES } from './lib/sampleWorkspaces';
 import { serializePoFile, parsePoContent } from './lib/poParser';
 import { compileMoBinary } from './lib/moCompiler';
 import { getPluralRuleForLanguage } from './lib/pluralEngine';
 import { lintEntry } from './lib/linter';
-import { buildCategoryTree } from './lib/categorizer';
+import { buildCategoryTree, CategoryNode, CategoryGroup } from './lib/categorizer';
 import { useTranslation } from './lib/i18n';
 import { globalTranslationMemory } from './lib/translationMemory';
 import { computeWorkspaceGitStatus, revertFileToHead } from './lib/gitEngine';
@@ -40,7 +40,6 @@ import { GitModal } from './components/GitModal';
 import { AboutModal } from './components/AboutModal';
 import { TransferModal } from './components/TransferModal';
 
-
 const DEFAULT_SETTINGS: AppSettings = {
   fuzzyMatchingThreshold: 80,
   autoMarkFuzzyUnder100: true,
@@ -53,8 +52,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   showNewlinesVisible: true,
   autoGenerateCategories: true,
 };
-
-
 
 export default function App() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
@@ -75,10 +72,9 @@ export default function App() {
     return initial;
   });
 
-  
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
-      if (!import.meta.env.DEV) {
+      if (!(import.meta as any).env?.DEV) {
         e.preventDefault();
       }
     };
@@ -91,16 +87,35 @@ export default function App() {
     return localStorage.getItem('openpot_session_active_id') || workspaces[0]?.id || '';
   });
 
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const saved = localStorage.getItem('openpot_settings');
+    if (saved) {
+      try {
+        return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      } catch (e) {
+        console.error('Failed to parse saved settings:', e);
+      }
+    }
+    return DEFAULT_SETTINGS;
+  });
+
   useEffect(() => {
     try {
       localStorage.setItem('openpot_session_workspaces', JSON.stringify(workspaces));
       localStorage.setItem('openpot_session_active_id', activeWorkspaceId);
     } catch (e) {
-      console.warn('Workspaces too large for LocalStorage. Please use Folder Sync to persist data.');
+      console.warn('Workspaces too large for LocalStorage.');
     }
   }, [workspaces, activeWorkspaceId]);
 
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  useEffect(() => {
+    try {
+      localStorage.setItem('openpot_settings', JSON.stringify(settings));
+    } catch (e) {
+      console.warn('Failed to save settings:', e);
+    }
+  }, [settings]);
+
   const [zoomLevel, setZoomLevel] = useState<number>(() => {
     const saved = localStorage.getItem('openpot_zoom');
     return saved ? parseInt(saved, 10) : 100;
@@ -136,11 +151,9 @@ export default function App() {
 
     const fadeTimer = setTimeout(() => {
       splash.classList.add('fade-out');
-
       const removeTimer = setTimeout(() => {
         splash.remove();
       }, 500);
-
       return () => clearTimeout(removeTimer);
     }, 300);
 
@@ -177,6 +190,7 @@ export default function App() {
     handleRenameDomain, handleCreateWorkspace, handleCloseWorkspace, handleBatchApplyTm, handleClearAllFuzzy, handleMarkUntranslatedFuzzy,
     handleReorderWorkspaces,
     handleRenameCategory,
+    handleBatchUpdateCategory,
     handleReorderCategories,
     handleDeleteCategory
   } = useWorkspaceActions(activeWorkspaceId, currentWorkspace, setWorkspaces, setActiveWorkspaceId, settings, triggerDiskSyncForPo, showToast, t);
@@ -287,18 +301,20 @@ export default function App() {
   }, [issuesMap]);
 
   const categoryData = useMemo(() => {
-  if (!currentWorkspace) return { tree: [], list: [] };
-  return buildCategoryTree(
-    activeEntries,
-    categoryIssuesCountMap,
-    currentWorkspace.customCategories || [],
-    settings.autoGenerateCategories ?? true
-  );
+    if (!currentWorkspace) return { tree: [], allGroups: [], pathToEntryIdsMap: new Map<string, string[]>() };
+    return buildCategoryTree(
+      activeEntries,
+      categoryIssuesCountMap,
+      currentWorkspace.customCategories || [],
+      settings.autoGenerateCategories ?? true,
+      isPotActive
+    );
   }, [
     activeEntries,
     categoryIssuesCountMap,
     currentWorkspace?.customCategories,
     settings.autoGenerateCategories,
+    isPotActive
   ]);
 
   const filteredEntries = useMemo(() => activeEntries.filter((entry) => {
@@ -435,7 +451,12 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const isCmdOrCtrl = e.ctrlKey || e.metaKey;
+      
+      if (isCmdOrCtrl && (e.code === 'KeyF' || e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+      }
       if (!isCmdOrCtrl) return;
+
 
       if (e.code === 'KeyS') {
         e.preventDefault();
@@ -539,7 +560,7 @@ export default function App() {
         onDownloadMo={(po: PoFileRecord, e) => {
           e.stopPropagation();
           const binary = compileMoBinary(po.header, po.entries);
-          const blob = new Blob([binary], { type: 'application/octet-stream' });
+          const blob = new Blob([binary as any], { type: 'application/octet-stream' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a'); a.href = url; a.download = po.filename.replace(/\.po$/, '.mo'); a.click(); URL.revokeObjectURL(url);
         }}
@@ -553,7 +574,7 @@ export default function App() {
           showNewlinesVisible={settings.showNewlinesVisible}
           autoGenerateCategories={settings.autoGenerateCategories ?? true}
           activeEntryId={activePotEntryId}
-          hiddenMatrixFiles={hiddenMatrixFiles} // 👈 
+          hiddenMatrixFiles={hiddenMatrixFiles}
           onNavigateToEditor={(potEntryId, poFileId) => {
             handleSelectFile(poFileId); 
             
@@ -600,6 +621,7 @@ export default function App() {
             }
            }}
             onReorderCategories={handleReorderCategories}
+            onDropEntriesToCategory={handleBatchUpdateCategory}
             onCreateKeyInCategory={(catPath) => {
               const baseMsgid = 'NEW_KEY';
               let finalMsgid = baseMsgid;
@@ -672,10 +694,12 @@ export default function App() {
               fuzzyThreshold={settings.fuzzyMatchingThreshold}
               autoMarkFuzzyUnder100={settings.autoMarkFuzzyUnder100}
               onUpdateCategory={handleUpdateCategory}
-              availableCategories={categoryData.allGroups.map((g) => g.name)}
+              availableCategories={categoryData.allGroups.map((g: CategoryGroup) => g.name)}
               showNewlinesVisible={settings.showNewlinesVisible}
               autoGenerateCategories={settings.autoGenerateCategories ?? true}
               onNavigateToMatrix={() => setViewMode('matrix')}
+
+              onNavigateToEditor={() => setViewMode('editor')}
             />
           </div>
         </main>
@@ -696,7 +720,7 @@ export default function App() {
         </div>
       </footer>
 
-      <NewKeyModal isOpen={isNewKeyModalOpen} onClose={() => setIsNewKeyModalOpen(false)} onAddKey={(data) => { handleAddKey(data); if (data.category) handleAddCategory(data.category); }} availableCategories={categoryData.allGroups.map((g) => g.name)} defaultCategory={selectedCategory || ''} />
+      <NewKeyModal isOpen={isNewKeyModalOpen} onClose={() => setIsNewKeyModalOpen(false)} onAddKey={(data) => { handleAddKey(data); if (data.category) handleAddCategory(data.category); }} availableCategories={categoryData.allGroups.map((g: CategoryGroup) => g.name)} defaultCategory={selectedCategory || ''} />
       <AddLanguageModal isOpen={isAddLanguageModalOpen} onClose={() => setIsAddLanguageModalOpen(false)} onAddLanguage={handleAddLanguage} existingLanguages={currentWorkspace.poFiles.map((p) => p.language)} />
       <RawPoModal workspace={currentWorkspace} csvPluralSuffix={settings.csvPluralSuffix || '_P%d'} isOpen={isRawPoModalOpen} onClose={() => setIsRawPoModalOpen(false)} filename={isPotActive ? currentWorkspace.potFile.filename : currentPoFile?.filename || 'messages.po'} header={isPotActive ? currentWorkspace.potFile.header : currentPoFile?.header || currentWorkspace.potFile.header} entries={isPotActive ? currentWorkspace.potFile.entries : currentPoFile?.entries || []} isPot={isPotActive} onSaveRaw={(newHeader, newEntries) => {
         pushHistorySnapshot(currentWorkspace);

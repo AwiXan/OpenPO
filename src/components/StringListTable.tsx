@@ -5,6 +5,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Info,
+  GripVertical,
 } from 'lucide-react';
 import { PoEntry, LintIssue } from '../types/gettext';
 import { useTranslation } from '../lib/i18n';
@@ -32,9 +33,24 @@ export const StringListTable: React.FC<StringListTableProps> = ({
 }) => {
   const { t } = useTranslation();
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const lastAnchorIdRef = useRef<string | null>(null);
+
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [tempMsgid, setTempMsgid] = useState('');
   const editInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (activeEntryId) {
+      setSelectedIds((prev) => {
+        if (prev.has(activeEntryId) && prev.size > 1) return prev;
+        return new Set([activeEntryId]);
+      });
+      if (!lastAnchorIdRef.current) {
+        lastAnchorIdRef.current = activeEntryId;
+      }
+    }
+  }, [activeEntryId]);
 
   useEffect(() => {
     if (editingEntryId && editInputRef.current) {
@@ -42,6 +58,52 @@ export const StringListTable: React.FC<StringListTableProps> = ({
       editInputRef.current.select();
     }
   }, [editingEntryId]);
+
+  const handleRowClick = (entry: PoEntry, e: React.MouseEvent) => {
+    const isCtrlOrCmd = e.ctrlKey || e.metaKey;
+    const isShift = e.shiftKey;
+
+    let nextSelected = new Set<string>(selectedIds);
+    let nextActiveId = entry.id;
+
+    if (isShift && lastAnchorIdRef.current) {
+
+      const anchorIndex = entries.findIndex((item) => item.id === lastAnchorIdRef.current);
+      const currentIndex = entries.findIndex((item) => item.id === entry.id);
+
+      if (anchorIndex !== -1 && currentIndex !== -1) {
+        const [start, end] = [
+          Math.min(anchorIndex, currentIndex),
+          Math.max(anchorIndex, currentIndex),
+        ];
+        if (!isCtrlOrCmd) {
+          nextSelected.clear();
+        }
+        for (let i = start; i <= end; i++) {
+          nextSelected.add(entries[i].id);
+        }
+      }
+    } else if (isCtrlOrCmd) {
+
+      if (nextSelected.has(entry.id)) {
+        if (nextSelected.size > 1) {
+          nextSelected.delete(entry.id);
+          nextActiveId = Array.from(nextSelected)[0];
+        }
+      } else {
+        nextSelected.add(entry.id);
+        nextActiveId = entry.id;
+      }
+      lastAnchorIdRef.current = entry.id;
+    } else {
+
+      nextSelected = new Set([entry.id]);
+      lastAnchorIdRef.current = entry.id;
+    }
+
+    setSelectedIds(nextSelected);
+    onSelectEntry(nextActiveId);
+  };
 
   const handleStartRename = (entry: PoEntry, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -72,7 +134,8 @@ export const StringListTable: React.FC<StringListTableProps> = ({
           </thead>
           <tbody className="text-xs font-mono">
             {entries.map((entry) => {
-              const isSelected = entry.id === activeEntryId;
+              const isActive = entry.id === activeEntryId;
+              const isMultiSelected = selectedIds.has(entry.id);
               const isFilled =
                 entry.msgstr.length > 0 && entry.msgstr.some((s) => s && s.trim() !== '');
               const isFuzzy = entry.flags.includes('fuzzy');
@@ -98,10 +161,25 @@ export const StringListTable: React.FC<StringListTableProps> = ({
               return (
                 <tr
                   key={entry.id}
-                  onClick={() => onSelectEntry(entry.id)}
+                  draggable={editingEntryId !== entry.id}
+                  style={{ WebkitUserDrag: 'element' as any }}
+                  onDragStart={(e) => {
+                    let idsToDrag = Array.from(selectedIds);
+                    if (!selectedIds.has(entry.id)) {
+                      idsToDrag = [entry.id];
+                      setSelectedIds(new Set([entry.id]));
+                      onSelectEntry(entry.id);
+                    }
+                    e.dataTransfer.setData('application/openpot-entries', JSON.stringify(idsToDrag));
+                    e.dataTransfer.setData('text/plain', idsToDrag.join(','));
+                    e.dataTransfer.effectAllowed = 'copyMove';
+                  }}
+                  onClick={(e) => handleRowClick(entry, e)}
                   className={`group border-b border-[#16191E] cursor-pointer transition-colors ${
-                    isSelected
+                    isActive
                       ? 'bg-[#1E293B] border-l-2 border-[#3B82F6]'
+                      : isMultiSelected
+                      ? 'bg-[#1E293B]/60 border-l-2 border-[#38BDF860]'
                       : 'hover:bg-[#1E293B40]'
                   }`}
                 >
@@ -133,7 +211,7 @@ export const StringListTable: React.FC<StringListTableProps> = ({
                       <div
                         className="flex items-center gap-1.5"
                         onDoubleClick={(e) => handleStartRename(entry, e)}
-                        title="Double-click to rename key"
+                        title="Double-click to rename key • Drag to move to category"
                       >
                         <span className="font-semibold text-[#E2E8F0] truncate hover:text-[#38BDF8] transition-colors">
                           {entry.msgid}

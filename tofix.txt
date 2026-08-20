@@ -1,0 +1,7 @@
+Categories just copies instead of moving to the other Category
+Categories multiple select
+Make in String List you can select multiple keys and add them to category
+
+Sync all the po files button
+
+In POT there shouldn't be warnings of untranslated

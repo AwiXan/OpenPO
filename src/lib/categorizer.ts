@@ -99,22 +99,21 @@ export function deriveCategoryPath(entry: PoEntry, autoGenerate = true): string[
   }
 
   // 7. SCREAMING_SNAKE_CASE prefixes (e.g. UI_SETTINGS_SECURITY_2FA, UI_NAV_HOME, AUTH_LOGIN_MODAL)
-  if (/^[A-Z0-9]+(_[A-Z0-9]+)+$/.test(key)) {
+  if (/^[a-zA-Z0-9]+(_[a-zA-Z0-9]+)+$/.test(key)) {
     const parts = key.split('_');
     if (parts.length >= 4) {
-      // 3 levels of hierarchy, e.g. UI_SETTINGS_THEME_DARK -> Ui / Settings / Theme
+
       return [formatWord(parts[0]), formatWord(parts[1]), formatWord(parts[2])];
     } else if (parts.length >= 3) {
-      // 2 levels of hierarchy, e.g. UI_NAV_HOME -> Ui / Nav
       return [formatWord(parts[0]), formatWord(parts[1])];
+
     } else if (parts.length === 2 && parts[0].length >= 2) {
-      // 1 level of hierarchy, e.g. AUTH_LOGIN -> Auth
       return [formatWord(parts[0])];
     }
   }
 
   // 8. Check single snake prefix (e.g., CART_ITEMS_COUNT or PROD_CATALOG)
-  const singleSnakeMatch = key.match(/^([A-Z0-9]{3,})_/);
+  const singleSnakeMatch = key.match(/^([a-zA-Z0-9]{2,})_/);
   if (singleSnakeMatch) {
     return [formatWord(singleSnakeMatch[1])];
   }
@@ -159,7 +158,8 @@ export function buildCategoryTree(
   entries: PoEntry[],
   issuesMap: Map<string, number> = new Map(),
   customCategories: string[] = [],
-  autoGenerate = true
+  autoGenerate = true,
+  isPotTemplate = false
 ): {
   tree: CategoryNode[];
   allGroups: CategoryGroup[];
@@ -241,8 +241,7 @@ export function buildCategoryTree(
   // 2. Add entries
   for (const entry of entries) {
     const path = deriveCategoryPath(entry, autoGenerate);
-    const isUntranslated =
-      entry.msgstr.length === 0 || entry.msgstr.every((s) => !s || s.trim() === '');
+    const isUntranslated = !isPotTemplate && (entry.msgstr.length === 0 || entry.msgstr.every((s) => !s || s.trim() === ''));
     const isFuzzy = entry.flags.includes('fuzzy');
     const issueCount = issuesMap.get(entry.id) || 0;
 

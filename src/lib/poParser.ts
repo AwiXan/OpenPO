@@ -20,7 +20,7 @@ export function parseHeader(headerStr: string): PoHeader {
     if (colonIdx > 0) {
       const key = line.slice(0, colonIdx).trim();
       const val = line.slice(colonIdx + 1).trim();
-      rawHeaders[key] = val; // Сохраняем оригинальный регистр
+      rawHeaders[key] = val;
     }
   }
 
@@ -76,7 +76,7 @@ export function serializeHeader(header: PoHeader, langOverride?: string): string
   add('Plural-Forms', pluralForms);
   add('X-Generator', header.xGenerator || 'PoCraft Gettext Studio');
 
-  // Any custom raw headers not explicitly covered (игнорируем дубликаты в любом регистре)
+
   const skipKeys = ['Project-Id-Version', 'Report-Msgid-Bugs-To', 'POT-Creation-Date', 'PO-Revision-Date', 'Last-Translator', 'Language-Team', 'Language', 'MIME-Version', 'Content-Type', 'Content-Transfer-Encoding', 'Plural-Forms', 'X-Generator'];
   
   for (const [k, v] of Object.entries(header.rawHeaders || {})) {

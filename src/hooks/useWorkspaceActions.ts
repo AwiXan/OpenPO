@@ -28,7 +28,7 @@ export function useWorkspaceActions(
       poFiles: JSON.parse(JSON.stringify(ws.poFiles)),
       activeFileId: ws.activeFileId,
       activeEntryId: ws.activeEntryId,
-      customCategories: JSON.parse(JSON.stringify(ws.customCategories || [])), // 👈 Сохраняем категории
+      customCategories: JSON.parse(JSON.stringify(ws.customCategories || [])),
     };
 
     setHistoryMap((prev) => {
@@ -76,7 +76,7 @@ export function useWorkspaceActions(
           poFiles: JSON.parse(JSON.stringify(previousSnapshot.poFiles)),
           activeFileId: previousSnapshot.activeFileId,
           activeEntryId: previousSnapshot.activeEntryId,
-          customCategories: previousSnapshot.customCategories ? JSON.parse(JSON.stringify(previousSnapshot.customCategories)) : [], // 👈 Восстанавливаем
+          customCategories: previousSnapshot.customCategories ? JSON.parse(JSON.stringify(previousSnapshot.customCategories)) : [],
           isModified: true,
         };
       })
@@ -115,7 +115,7 @@ export function useWorkspaceActions(
           poFiles: JSON.parse(JSON.stringify(nextSnapshot.poFiles)),
           activeFileId: nextSnapshot.activeFileId,
           activeEntryId: nextSnapshot.activeEntryId,
-          customCategories: nextSnapshot.customCategories ? JSON.parse(JSON.stringify(nextSnapshot.customCategories)) : [], // 👈 Восстанавливаем
+          customCategories: nextSnapshot.customCategories ? JSON.parse(JSON.stringify(nextSnapshot.customCategories)) : [],
           isModified: true,
         };
       })
@@ -150,6 +150,7 @@ export function useWorkspaceActions(
     position: 'before' | 'after' | 'inside'
   ) => {
     if (!currentWorkspace || !sourcePath) return;
+    if (targetPath && (sourcePath === targetPath || targetPath.startsWith(sourcePath + ' / '))) return;
 
     const nodeName = sourcePath.split(' / ').pop()!;
     let newFullPath = sourcePath;
@@ -235,6 +236,62 @@ export function useWorkspaceActions(
 
     showToast(`Moved category to "${newFullPath}"`, 'info');
   }, [activeWorkspaceId, currentWorkspace, pushHistorySnapshot, setWorkspaces, showToast]);
+
+  const handleBatchUpdateCategory = useCallback((entryIds: string[], targetCategory: string) => {
+    if (!currentWorkspace || entryIds.length === 0) return;
+    const normalized = normalizeCategoryPath(targetCategory);
+    if (normalized) handleAddCategory(normalized);
+
+    pushHistorySnapshot(
+      currentWorkspace,
+      `Move ${entryIds.length} keys to "${normalized || 'Root'}"`
+    );
+
+    const targetIdsSet = new Set(entryIds);
+
+    setWorkspaces((prev) =>
+      prev.map((w) => {
+        if (w.id !== activeWorkspaceId) return w;
+
+        const targetKeys = new Set<string>();
+        [...w.potFile.entries, ...w.poFiles.flatMap((p) => p.entries)].forEach((e) => {
+          if (targetIdsSet.has(e.id)) {
+            targetKeys.add(`${e.msgid}:::${e.msgctxt || ''}`);
+          }
+        });
+
+        const updateEntry = (e: PoEntry): PoEntry => {
+          const key = `${e.msgid}:::${e.msgctxt || ''}`;
+          if (targetIdsSet.has(e.id) || targetKeys.has(key)) {
+            return {
+              ...e,
+              category: normalized || undefined,
+            };
+          }
+          return e;
+        };
+
+        const updatedPotEntries = w.potFile.entries.map(updateEntry);
+        const updatedPoFiles = w.poFiles.map((po) => ({
+          ...po,
+          entries: po.entries.map(updateEntry),
+          isModified: true,
+        }));
+
+        return {
+          ...w,
+          potFile: { ...w.potFile, entries: updatedPotEntries, isModified: true },
+          poFiles: updatedPoFiles,
+          isModified: true,
+        };
+      })
+    );
+
+    showToast(
+      `${entryIds.length} ${entryIds.length === 1 ? 'key' : 'keys'} moved to "${normalized || 'Root'}"`,
+      'success'
+    );
+  }, [activeWorkspaceId, currentWorkspace, handleAddCategory, pushHistorySnapshot, setWorkspaces, showToast]);
 
   const handleSelectFile = (fileId: string) => {
     setWorkspaces((prev) =>
@@ -719,6 +776,7 @@ export function useWorkspaceActions(
     handleRenameDomain, handleCreateWorkspace, handleCloseWorkspace, handleBatchApplyTm, handleClearAllFuzzy, handleMarkUntranslatedFuzzy,
     handleInitGit, handleStageFile, handleUnstageFile, handleStageAll, handleUnstageAll, handleCommit, handleRevertFile, handleRestoreCommit, handleRenameCategory,
     handleDeleteCategory,
+    handleBatchUpdateCategory,
     handleReorderCategories,
     handleReorderWorkspaces
   };

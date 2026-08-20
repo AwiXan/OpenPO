@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sliders,
   RotateCcw,
@@ -58,6 +58,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       onClose();
     }, 600);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      setLocalSettings({
+        csvPluralSuffix: '_P%d',
+        ...settings,
+      });
+      setLocalDomain(domainName);
+    }
+  }, [isOpen, settings, domainName]);
 
   const handleResetDefaults = () => {
     const defaults: AppSettings = {
