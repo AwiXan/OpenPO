@@ -10,7 +10,9 @@ So, here it is:
 
 **OpenPOT** is a modern and fast cross-platform editor for GNU **gettext** (`.po`, `.pot`, `.mo`) localization catalogs, built for game and application developers. Powered by Tauri, React, TypeScript, and Tailwind CSS.
 
-<img width="1916" height="1026" alt="image" src="https://github.com/user-attachments/assets/86719a5d-2f1a-42f8-92f4-8e32ea3e3206" />
+<img width="1918" height="1030" alt="image" src="https://github.com/user-attachments/assets/54349b7d-724f-4a50-ba35-86b6e8a58411" />
+
+
 
 
 ### KEY FEATURES:
@@ -22,7 +24,7 @@ So, here it is:
 <img width="1915" height="799" alt="image" src="https://github.com/user-attachments/assets/bfa2c1ad-259e-4d8b-9203-9a237a5a038d" />
 
 - **Category Organization** - Stuck while searching for your key? Organize your keys with virtual folders and subfolders.
-<img width="344" height="423" alt="image" src="https://github.com/user-attachments/assets/bc0b5f27-4673-4351-bd73-5c6bca32fc12" />
+<img width="377" height="374" alt="image" src="https://github.com/user-attachments/assets/c0e646b2-8f32-492a-8843-6c2c15b43d05" />
 
 - **JSON & CSV Support** - Seamless import and automatic export to JSON/CSV for modern game engines and web frameworks.
 <img width="593" height="485" alt="image" src="https://github.com/user-attachments/assets/f925ed3b-9619-46b9-9bdd-2b434a5e8f81" />
